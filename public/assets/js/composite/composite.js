@@ -1,3 +1,5 @@
+"use strict";
+
 import { ToneAudioBuffer } from "https://esm.sh/tone";
 
 import { bus } from "./data/EventBus.js";
