@@ -1,5 +1,22 @@
+import { ToneAudioBuffer } from "https://esm.sh/tone";
+
+import { bus } from "./data/EventBus.js";
+import { SongOptions } from "./data/SongOptions.js";
+import { MidiData } from "./midi/Data.js";
+import { History } from "./history/History.js";
+
+import { Sound } from "./sound/Sound.js";
+
+const buffer = new ToneAudioBuffer();
+
+const songOptions = new SongOptions();
+const midiData = new MidiData();
+
+const sound = new Sound(songOptions, midiData);
+
 const numColumns = 32;
 const buttonNote = ["Do", "Ti", "La", "Sol", "Fa", "Mi", "Re", "Do"];
+const noteIndex = [48, 50, 52, 53, 55, 57, 59, 60];
 const noteColor = [
   "#e33059",
   "#f7943d",
@@ -25,8 +42,8 @@ for (let i = 1; i <= 10 * numColumns; i++) {
   const button = document.createElement("button");
   button.classList.add("grid-btn");
   button.setAttribute("data-id", i);
-  indexColumn = i % numColumns;
-  indexRow = Math.floor(i / numColumns);
+  let indexColumn = i % numColumns;
+  let indexRow = Math.floor(i / numColumns);
   if (i <= 8 * numColumns) {
     if (Math.floor((indexColumn - 1) / 8) % 2) {
       button.classList.add("oddBtn");
@@ -41,8 +58,8 @@ for (let i = 1; i <= 10 * numColumns; i++) {
     button.addEventListener("mousedown", () => {
       button.classList.toggle("selected");
       const index = button.getAttribute("data-id");
-      buttonRow = 7 - Math.floor(index / numColumns);
-      buttonColumn = (index - 1) % numColumns;
+      let buttonRow = 7 - Math.floor(index / numColumns);
+      let buttonColumn = (index - 1) % numColumns;
       if (button.classList.contains("selected")) {
         if (!button.hasAttribute("data-original-bg")) {
           button.setAttribute(
@@ -58,6 +75,13 @@ for (let i = 1; i <= 10 * numColumns; i++) {
 
         //impact music sheet
         noteGroup[buttonColumn].push(buttonRow);
+        sound.instrumentTrack.playNote(
+          noteIndex[buttonRow],
+          undefined,
+          undefined,
+          0.8
+        );
+
         // console.log(buttonColumn, buttonRow + 1);
         drawVex();
       } else {
@@ -94,7 +118,7 @@ for (let i = 1; i <= 10 * numColumns; i++) {
     // gridContainer.style.gap = "10px";
     button.addEventListener("click", () => {
       const index = button.getAttribute("data-id");
-      buttonRow = Math.floor(index / numColumns);
+      let buttonRow = Math.floor(index / numColumns);
 
       console.log(buttonRow);
       button.classList.toggle("selected");
@@ -129,7 +153,7 @@ function drawVex() {
   const VF = Vex.Flow;
   const renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
 
-  sheetLength = 1300;
+  let sheetLength = 1300;
 
   renderer.resize(sheetLength, 200);
   const context = renderer.getContext();
@@ -168,8 +192,8 @@ function drawVex() {
 
     if (noteGroup[i].length > 0) {
       // if (noteGroup[i][j] == "0") {
-      tempKeys = [];
-      for (k = 0; k < noteGroup[i].length; k++) {
+      let tempKeys = [];
+      for (let k = 0; k < noteGroup[i].length; k++) {
         tempKeys.push(notePair[noteGroup[i][k]]);
       }
       notes.push(
