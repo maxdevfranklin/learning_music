@@ -155,7 +155,7 @@ function drawVex() {
 
   let sheetLength = 1300;
 
-  renderer.resize(sheetLength, 200);
+  renderer.resize(sheetLength, 150);
   const context = renderer.getContext();
 
   let stave = new VF.Stave(10, 20, sheetLength - 20);

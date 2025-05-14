@@ -12,18 +12,18 @@
   text-align: center;
   background: linear-gradient(
     60deg,
-    rgba(84, 58, 183, 1) 0%,
-    rgba(0, 172, 193, 1) 100%
+    rgb(220, 210, 255) 0%,
+    rgb(210, 249, 255) 100%
   );
   color: white;
 }
 
 .inner-wave-anim {
   display: flex;
-  padding-top: 40vh;
+  padding-top: 15vh;
   justify-content: center;
   align-items: center;
-  height: 70vh;
+  height: 30vh;
   width: 100%;
 }
 
