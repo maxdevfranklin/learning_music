@@ -1,10 +1,16 @@
-const express = require("express");
-const cors = require("cors");
-const path = require("path");
+import express from "express";
+import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
+
 const app = express();
 
 app.use(cors()); // This will allow all origins
 // Serve the index.html file when the root URL is accessed
+
+// Emulate __dirname in ES module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 app.use(express.static(path.join(__dirname, "public")));
 

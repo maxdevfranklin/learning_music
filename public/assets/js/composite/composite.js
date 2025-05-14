@@ -1,7 +1,7 @@
 // import { ToneAudioBuffer } from "https://esm.sh/tone";
 
 import { bus } from "./data/EventBus.js";
-import { SongOptions } from "./data/SongOptions.js";
+// import { SongOptions } from "./data/SongOptions.js";
 import { MidiData } from "./midi/Data.js";
 import { History } from "./history/History.js";
 
@@ -11,10 +11,13 @@ const { ToneAudioBuffer } = Tone;
 
 const buffer = new ToneAudioBuffer();
 
-const songOptions = new SongOptions();
+// console.log(SongOptions);
+// const { SongOptions } = SongOptions;
+
+// const songOptions = new SongOptions();
 const midiData = new MidiData();
 
-const sound = new Sound(songOptions, midiData);
+// const sound = new Sound(songOptions, midiData);
 
 const numColumns = 32;
 const buttonNote = ["Do", "Ti", "La", "Sol", "Fa", "Mi", "Re", "Do"];
@@ -77,12 +80,12 @@ for (let i = 1; i <= 10 * numColumns; i++) {
 
         //impact music sheet
         noteGroup[buttonColumn].push(buttonRow);
-        sound.instrumentTrack.playNote(
-          noteIndex[buttonRow],
-          undefined,
-          undefined,
-          0.8
-        );
+        // sound.instrumentTrack.playNote(
+        //   noteIndex[buttonRow],
+        //   undefined,
+        //   undefined,
+        //   0.8
+        // );
 
         // console.log(buttonColumn, buttonRow + 1);
         drawVex();
