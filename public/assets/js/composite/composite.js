@@ -19,7 +19,7 @@
 
 // const sound = new Sound(songOptions, midiData);
 
-const numColumns = 32;
+const numColumns = 36;
 const buttonNote = ["Do", "Ti", "La", "Sol", "Fa", "Mi", "Re", "Do"];
 const noteIndex = [48, 50, 52, 53, 55, 57, 59, 60];
 const noteColor = [
