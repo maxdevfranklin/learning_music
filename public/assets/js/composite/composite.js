@@ -11,8 +11,11 @@ const buffer = new ToneAudioBuffer();
 
 const songOptions = new SongOptions();
 const midiData = new MidiData();
-
 const sound = new Sound(songOptions, midiData);
+
+let isPlaying = false;
+let stopRequested = false;
+let currentPlaybackTimeout = null;
 
 const numColumns = 32;
 const buttonNote = ["Do", "Ti", "La", "Sol", "Fa", "Mi", "Re", "Do"];
@@ -57,6 +60,7 @@ for (let i = 1; i <= 10 * numColumns; i++) {
 
     button.addEventListener("mousedown", () => {
       button.classList.toggle("selected");
+      console.log(noteGroup);
       const index = button.getAttribute("data-id");
       let buttonRow = 7 - Math.floor(index / numColumns);
       let buttonColumn = (index - 1) % numColumns;
@@ -220,5 +224,82 @@ function drawVex() {
       // Render voice
       voice.draw(context, stave1);
     }
+  }
+}
+
+const playButton = document.getElementById("play-button");
+
+// Set up event listener
+playButton.addEventListener("click", togglePlayback);
+
+/**
+ * Toggles music playback state
+ */
+function togglePlayback() {
+  if (isPlaying) {
+    stopPlayback();
+  } else {
+    startPlayback();
+  }
+}
+
+function stopPlayback() {
+  stopRequested = true;
+  playButton.classList.remove("playing");
+  isPlaying = false;
+
+  // Clear any pending timeouts
+  if (currentPlaybackTimeout) {
+    clearTimeout(currentPlaybackTimeout);
+    currentPlaybackTimeout = null;
+  }
+}
+
+/**
+ * Starts music playback
+ */
+function startPlayback() {
+  playButton.classList.add("playing");
+  isPlaying = true;
+  stopRequested = false;
+
+  // Start playing from the beginning
+  playMusic(0);
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function playMusic(startIndex = 0) {
+  try {
+    for (let i = startIndex; i < noteGroup.length; i++) {
+      if (stopRequested) {
+        return; // Exit if stop was requested
+      }
+
+      // Play all notes in the current group
+      for (let j = 0; j < noteGroup[i].length; j++) {
+        sound.instrumentTrack.playNote(
+          noteIndex[noteGroup[i][j]],
+          undefined,
+          undefined,
+          0.8
+        );
+      }
+
+      // Wait before playing the next note group
+      await delay(500);
+    }
+
+    // When we reach the end, loop back to the beginning
+    if (isPlaying && !stopRequested) {
+      playMusic(0);
+    } else {
+      stopPlayback(); // Ensure proper cleanup if we exit the loop
+    }
+  } catch (error) {
+    console.error("Error during playback:", error);
+    stopPlayback(); // Clean up on error
   }
 }

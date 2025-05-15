@@ -186,13 +186,13 @@ input {
 }
 
 #play-button.playing:before {
-  background-image: url(/images/icon-stop.svg);
+  background-image: url(/assets/image/icon-stop.svg);
   background-position: center;
 }
 
 #play-button:before {
   background-color: #16a8f0;
-  background-image: url(/images/icon-play.svg);
+  background-image: url(/assets/image/icon-play.svg);
   background-position: 55%;
   background-size: 34%;
   text-align: center;
