@@ -166,7 +166,7 @@ function drawVex() {
     if (i > 0) {
       stave1 = new VF.Stave(38 * i + 74, 20, 38);
     }
-    if (i < 31) {
+    if (i < 31 && i % 4 != 3) {
       stave1.setBegBarType(VF.Barline.type.NONE);
       stave1.setEndBarType(VF.Barline.type.NONE);
     }
