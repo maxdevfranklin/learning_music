@@ -9251,7 +9251,7 @@
         f +
         ")}body.embed-only #bottom #bottom-left #play-button:before{background-color:transparent;background-image:url(" +
         p +
-        ');background-size:21px 21px;width:15px;height:20px;border-radius:0}body.embed-only #bottom #bottom-left #play-button:hover:before{background-color:transparent}@media(max-width: 767px){body.embed-only #bottom #bottom-left #play-button{text-indent:60px;top:14px;left:30px}}body.embed-only #edit-link{position:absolute;bottom:13px;right:30px;color:#16a8f0;font-size:14px;text-decoration:none;font-family:"Poppins",sans-serif;letter-spacing:.67px}body.embed-only #edit-link::before{content:"\\a";position:relative;margin-right:10px;background-image:url(' +
+        ');background-size:21px 21px;width:15px;height:10px;border-radius:0}body.embed-only #bottom #bottom-left #play-button:hover:before{background-color:transparent}@media(max-width: 767px){body.embed-only #bottom #bottom-left #play-button{text-indent:60px;top:14px;left:30px}}body.embed-only #edit-link{position:absolute;bottom:13px;right:30px;color:#16a8f0;font-size:14px;text-decoration:none;font-family:"Poppins",sans-serif;letter-spacing:.67px}body.embed-only #edit-link::before{content:"\\a";position:relative;margin-right:10px;background-image:url(' +
         g +
         ");height:14px;width:14px;display:inline-block}",
       "",
