@@ -147,85 +147,82 @@ for (let i = 1; i <= 10 * numColumns; i++) {
   }
 }
 
-drawVex();
+// Italian tempo terms mapping
+const tempoTerms = [
+  { min: 20, max: 40, term: "Grave" },
+  { min: 41, max: 60, term: "Largo" },
+  { min: 61, max: 76, term: "Adagio" },
+  { min: 77, max: 108, term: "Andante" },
+  { min: 109, max: 120, term: "Moderato" },
+  { min: 121, max: 168, term: "Allegro" },
+  { min: 169, max: 200, term: "Presto" },
+  { min: 201, max: 300, term: "Prestissimo" },
+];
 
-function drawVex() {
-  // Initialize VexFlow
-  const div = document.getElementById("notation");
-  div.innerHTML = "";
-
-  const VF = Vex.Flow;
-  const renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
-
-  let sheetLength = 1300;
-
-  renderer.resize(sheetLength, 150);
-  const context = renderer.getContext();
-
-  let stave = new VF.Stave(10, 20, sheetLength - 20);
-  stave.setContext(context).draw();
-
-  for (let i = 0; i < 32; i++) {
-    let stave1 = new VF.Stave(10, 20, 38);
-    if (i > 0) {
-      stave1 = new VF.Stave(38 * i + 74, 20, 38);
-    }
-    if (i < 31 && i % 4 != 3) {
-      stave1.setBegBarType(VF.Barline.type.NONE);
-      stave1.setEndBarType(VF.Barline.type.NONE);
-    }
-    stave1.setBegBarType(VF.Barline.type.NONE);
-    if (i == 0) {
-      stave1.addClef("treble").addTimeSignature("4/4");
-    }
-    stave1.setContext(context).draw();
-
-    var notes = [
-      // A quarter-note C.
-      // new VF.StaveNote({
-      //   clef: "treble",
-      //   keys: [notePair[noteGroup[i]]],
-      //   duration: EasePair[noteGroup[i]],
-      // }),
-      // new VF.StaveNote({
-      //   clef: "treble",
-      //   keys: ["c/4", "e/4", "g/4"],
-      //   duration: "q",
-      // }),
-    ];
-
-    if (noteGroup[i].length > 0) {
-      // if (noteGroup[i][j] == "0") {
-      let tempKeys = [];
-      for (let k = 0; k < noteGroup[i].length; k++) {
-        tempKeys.push(notePair[noteGroup[i][k]]);
-      }
-      notes.push(
-        new VF.StaveNote({
-          clef: "treble",
-          keys: tempKeys,
-          duration: "q",
-        })
-      );
-      // }
-    }
-    // console.log(noteGroup);
-
-    // // Create a voice in 4/4 and add above notes
-    if (notes.length > 0) {
-      var voice = new VF.Voice({ num_beats: 1, beat_value: 4 });
-      voice.addTickables(notes);
-
-      // Format and justify the notes to 400 pixels.
-      var formatter = new VF.Formatter()
-        .joinVoices([voice])
-        .format([voice], 40);
-
-      // Render voice
-      voice.draw(context, stave1);
-    }
+function getTempoTerm(bpm) {
+  for (const t of tempoTerms) {
+    if (bpm >= t.min && bpm <= t.max) return t.term;
   }
+  return "Allegro";
 }
+
+// Time signature handling
+const timeSignatureSelect = document.getElementById('time-signature');
+let currentTimeSignature = '4/4';
+timeSignatureSelect.addEventListener('change', (e) => {
+  currentTimeSignature = e.target.value;
+  // Update beats in SongOptions
+  if (currentTimeSignature === '4/4') {
+    songOptions.beats = 4;
+  } else if (currentTimeSignature === '3/4') {
+    songOptions.beats = 3;
+  }
+  drawVex();
+});
+
+// Tempo Italian label handling
+const tempoItalianLabel = document.getElementById('tempo-italian');
+const tempoSlider = document.getElementById('tempo-slider');
+const bpmValue = document.getElementById('bpm-value');
+
+function updateTempoItalianLabel() {
+  const bpm = songOptions.tempo;
+  tempoItalianLabel.textContent = getTempoTerm(bpm);
+  if (bpmValue) bpmValue.textContent = bpm;
+  if (tempoSlider) tempoSlider.value = bpm;
+}
+
+if (tempoSlider) {
+  tempoSlider.addEventListener('input', (e) => {
+    const bpm = parseInt(e.target.value);
+    songOptions.tempo = bpm;
+    updateTempoItalianLabel();
+  });
+}
+
+// Attach event listeners to all possible BPM inputs (for legacy support)
+const tempoInputs = document.querySelectorAll('input[type="range"], input[type="number"], input[name="tempo"], #tempo');
+tempoInputs.forEach(input => {
+  input.addEventListener('input', (e) => {
+    const bpm = parseInt(e.target.value);
+    songOptions.tempo = bpm;
+    updateTempoItalianLabel();
+  });
+});
+updateTempoItalianLabel();
+
+// Dynamic markings handling
+const dynamicMarkingsSelect = document.getElementById('dynamic-markings');
+const dynamicMarkingDisplay = document.getElementById('dynamic-marking-display');
+let currentDynamicMarking = '';
+dynamicMarkingsSelect.addEventListener('change', (e) => {
+  currentDynamicMarking = e.target.value;
+  dynamicMarkingDisplay.textContent = currentDynamicMarking;
+  // Only update the display, do not break or block any other functionality
+  drawVex();
+});
+
+drawVex();
 
 const playButton = document.getElementById("play-button");
 
@@ -288,8 +285,10 @@ async function playMusic(startIndex = 0) {
         );
       }
 
-      // Wait before playing the next note group
-      await delay(500);
+      // Wait before playing the next note group, based on current tempo
+      const bpm = songOptions.tempo || 120;
+      const msPerBeat = 60000 / bpm;
+      await delay(msPerBeat);
     }
 
     // When we reach the end, loop back to the beginning
@@ -301,5 +300,73 @@ async function playMusic(startIndex = 0) {
   } catch (error) {
     console.error("Error during playback:", error);
     stopPlayback(); // Clean up on error
+  }
+}
+
+function drawVex() {
+  // Initialize VexFlow
+  const div = document.getElementById("notation");
+  div.innerHTML = "";
+
+  const VF = Vex.Flow;
+  const renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
+
+  let sheetLength = 1300;
+
+  renderer.resize(sheetLength, 150);
+  const context = renderer.getContext();
+
+  let stave = new VF.Stave(10, 20, sheetLength - 20);
+  stave.setContext(context).draw();
+
+  for (let i = 0; i < 32; i++) {
+    let stave1 = new VF.Stave(10, 20, 38);
+    if (i > 0) {
+      stave1 = new VF.Stave(38 * i + 74, 20, 38);
+    }
+    if (i < 31 && i % (songOptions.beats) !== (songOptions.beats - 1)) {
+      stave1.setBegBarType(VF.Barline.type.NONE);
+      stave1.setEndBarType(VF.Barline.type.NONE);
+    }
+    stave1.setBegBarType(VF.Barline.type.NONE);
+    if (i == 0) {
+      stave1.addClef("treble").addTimeSignature(currentTimeSignature);
+    }
+    stave1.setContext(context).draw();
+
+    var notes = [];
+    if (noteGroup[i].length > 0) {
+      let tempKeys = [];
+      for (let k = 0; k < noteGroup[i].length; k++) {
+        tempKeys.push(notePair[noteGroup[i][k]]);
+      }
+      notes.push(
+        new VF.StaveNote({
+          clef: "treble",
+          keys: tempKeys,
+          duration: "q",
+        })
+      );
+    }
+    if (notes.length > 0) {
+      var voice = new VF.Voice({ num_beats: 1, beat_value: parseInt(currentTimeSignature.split('/')[1]) });
+      voice.addTickables(notes);
+      var formatter = new VF.Formatter().joinVoices([voice]).format([voice], 40);
+      voice.draw(context, stave1);
+    }
+    // Draw dynamic marking below percussion line (at the bottom of the stave)
+    if (currentDynamicMarking && i === 0) {
+      // Draw the dynamic marking as plain text below the staff
+      context.save();
+      context.setFont("Serif", 18, "bold");
+      context.setFillStyle("#222");
+      // Position: x = start of stave1, y = stave1.getBottomY() + offset
+      context.fillText(
+        currentDynamicMarking,
+        stave1.getX() + 10,
+        stave1.getBottomY() + 25
+      );
+      context.restore();
+    }
   }
 }

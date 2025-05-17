@@ -45,7 +45,7 @@
         </button>
       </div>
     </nav>
-    <div style="display: flex; width: 100%; height: 100%">
+    <div style="display: flex; width: 100%;">
       <div class="wave-back">
         <div class="wave-anim">
           <div class="inner-wave-anim"></div>
@@ -93,18 +93,52 @@
     </div>
 
     <div class="container">
-      <div class="music-sheet">
+      <div class="music-sheet" style="display: flex; align-items: center; gap: 16px;">
         <div id="notation"></div>
+        <!-- Time Signature Dropdown -->
+        <div style="margin-left: 16px;">
+          <label for="time-signature" style="font-weight: bold;">Time Signature:</label>
+          <select id="time-signature" class="modern-select" style="padding: 8px 16px; border-radius: 8px; font-size: 1.1em; border: 1px solid #ccc; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <option value="4/4">4/4</option>
+            <option value="3/4">3/4</option>
+          </select>
+        </div>
       </div>
-      <div class="adjust-area">
-        <button id="play-button">Start</button>
+      <div class="adjust-area" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%;">
+        <!-- Tempo Italian Label above the slider -->
+        <div style="width: 100%; display: flex; justify-content: center;">
+          <span id="tempo-italian" class="tempo-term-label">Allegro</span>
+        </div>
+        <!-- Tempo slider and BPM display -->
+        <div style="display: flex; align-items: center; gap: 12px; width: 100%; justify-content: center; margin-bottom: 8px;">
+          <label for="tempo-slider" style="font-weight: 500; color: #888;">Tempo</label>
+          <input id="tempo-slider" type="range" min="40" max="208" value="120" style="width: 200px;">
+          <span id="bpm-value" style="font-size: 1.1em; color: #0074d9; margin-left: 4px;">120</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 24px; width: 100%; justify-content: center;">
+          <button id="play-button">Start</button>
+          <!-- The rest of your controls go here -->
+        </div>
       </div>
       <div class="note-container">
         <div class="note-group" id="noteGroup"></div>
       </div>
+      <!-- Dynamic Markings UI -->
+      <div id="dynamic-markings-container" style="margin-top: 12px; display: flex; align-items: center; gap: 8px;">
+        <label for="dynamic-markings" style="font-weight: bold;">Dynamics:</label>
+        <select id="dynamic-markings" style="padding: 2px 8px; border-radius: 4px;">
+          <option value="">None</option>
+          <option value="pp">pp</option>
+          <option value="p">p</option>
+          <option value="mf">mf</option>
+          <option value="f">f</option>
+          <option value="ff">ff</option>
+        </select>
+        <span id="dynamic-marking-display" style="font-size: 1.2em; margin-left: 8px;"></span>
+      </div>
     </div>
 
-    <!-- <script src="http://unpkg.com/tone"></script> -->
+    <script src="http://unpkg.com/tone"></script>
     <script
       src="/assets/js/composite/data/SongOptions.js"
       type="module"
