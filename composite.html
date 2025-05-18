@@ -104,6 +104,12 @@
           </select>
         </div>
       </div>
+
+      <!-- Add progress bar container -->
+      <div class="progress-container" style="width: 100%; height: 4px; background: #eee; margin: 10px 0; border-radius: 2px; overflow: hidden;">
+        <div id="playback-progress" style="width: 0%; height: 100%; background: linear-gradient(90deg, #0074d9, #7fdbff); transition: width 0.1s linear;"></div>
+      </div>
+
       <div class="adjust-area" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%;">
         <!-- Tempo Italian Label above the slider -->
         <div style="width: 100%; display: flex; justify-content: center;">
@@ -116,25 +122,48 @@
           <span id="bpm-value" style="font-size: 1.1em; color: #0074d9; margin-left: 4px;">120</span>
         </div>
         <div style="display: flex; align-items: center; gap: 24px; width: 100%; justify-content: center;">
-          <button id="play-button">Start</button>
-          <!-- The rest of your controls go here -->
+          <button id="play-button" class="circular-btn" style="width: 40px; height: 40px; border-radius: 50%; background: #00A3FF; color: white; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0;">
+            <svg class="play-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+              <polygon points="5,3 19,12 5,21"/>
+            </svg>
+            <svg class="pause-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="display: none;">
+              <rect x="6" y="4" width="4" height="16"/>
+              <rect x="14" y="4" width="4" height="16"/>
+            </svg>
+          </button>
+          <button id="reset-button" class="circular-btn" style="width: 40px; height: 40px; border-radius: 50%; background: #00A3FF; color: white; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+              <path d="M3 3v5h5"/>
+            </svg>
+          </button>
         </div>
       </div>
       <div class="note-container">
         <div class="note-group" id="noteGroup"></div>
       </div>
       <!-- Dynamic Markings UI -->
-      <div id="dynamic-markings-container" style="margin-top: 12px; display: flex; align-items: center; gap: 8px;">
-        <label for="dynamic-markings" style="font-weight: bold;">Dynamics:</label>
-        <select id="dynamic-markings" style="padding: 2px 8px; border-radius: 4px;">
-          <option value="">None</option>
-          <option value="pp">pp</option>
-          <option value="p">p</option>
-          <option value="mf">mf</option>
-          <option value="f">f</option>
-          <option value="ff">ff</option>
-        </select>
-        <span id="dynamic-marking-display" style="font-size: 1.2em; margin-left: 8px;"></span>
+      <div id="dynamic-markings-container" style="display: flex; flex-direction: row; align-items: center; gap: 16px;">
+        <div class="dynamics-label" style="font-size: 1.2em; font-weight: 500; color: #2c3e50; letter-spacing: 0.5px;">
+          Dynamics
+        </div>
+        <div class="dynamics-controls" style="display: flex; align-items: center; gap: 20px; background: rgba(255, 255, 255, 0.9); padding: 16px 24px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);">
+          <select id="dynamic-markings" class="dynamic-select" style="appearance: none; padding: 8px 35px 8px 15px; font-size: 1.1em; border: 2px solid #e0e7ff; border-radius: 8px; background: white url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%236366f1\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 9l6 6 6-6\"/></svg>') no-repeat right 12px center; background-size: 12px; cursor: pointer; color: #4f46e5; font-weight: 500; transition: all 0.3s ease;">
+            <option value="">None</option>
+            <option value="pp">pp</option>
+            <option value="p">p</option>
+            <option value="mp">mp</option>
+            <option value="mf">mf</option>
+            <option value="f">f</option>
+            <option value="ff">ff</option>
+          </select>
+          <div class="dynamics-display" style="display: flex; align-items: center; gap: 12px;">
+            <span id="dynamic-marking-display" style="font-size: 1.4em; font-weight: 600; color: #4f46e5; min-width: 40px; text-align: center; font-style: italic;"></span>
+            <div class="dynamics-info" style="font-size: 0.9em; color: #6b7280;">
+              <span class="dynamics-term"></span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
