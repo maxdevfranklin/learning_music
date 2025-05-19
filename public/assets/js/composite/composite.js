@@ -16,6 +16,7 @@ const sound = new Sound(songOptions, midiData);
 let isPlaying = false;
 let stopRequested = false;
 let currentPlaybackTimeout = null;
+let isResizing = false;
 
 const numColumns = 32;
 const buttonNote = ["Do", "Ti", "La", "Sol", "Fa", "Mi", "Re", "Do"];
@@ -44,6 +45,7 @@ gridContainer.style.gridTemplateColumns = `repeat(${numColumns}, 1fr)`;
 // Add drag selection variables
 let isDragging = false;
 let lastSelectedButton = null;
+let lastSelectedNote = 0;
 let selectionStarted = false;
 let initialButtonState = false; // true if first button was selected, false if unselected
 
@@ -75,7 +77,26 @@ for (let i = 1; i <= 10 * numColumns; i++) {
       initialButtonState = !button.classList.contains("selected");
 
       // Toggle the first button
-      toggleButton(button, initialButtonState);
+      // add condition to toggle
+      const buttons = document.elementsFromPoint(e.clientX, e.clientY);
+      const targetButton = buttons.find((el) =>
+        el.classList.contains("grid-btn")
+      );
+      if (targetButton && targetButton.classList.contains("selected")) {
+        const rect = targetButton.getBoundingClientRect();
+        if (
+          e.clientX >= rect.right - rect.width / 5 ||
+          e.clientX <= rect.left + rect.width / 5
+        ) {
+          isResizing = true;
+          selectionStarted = true;
+          initialButtonState = true;
+        } else {
+          toggleButton(button, initialButtonState);
+        }
+      } else {
+        toggleButton(button, initialButtonState);
+      }
     });
 
     gridContainer.appendChild(button);
@@ -100,7 +121,7 @@ for (let i = 1; i <= 10 * numColumns; i++) {
       const index = button.getAttribute("data-id");
       let buttonRow = Math.floor(index / numColumns);
 
-      console.log(buttonRow);
+      // console.log(buttonRow);
       button.classList.toggle("selected");
       if (button.classList.contains("selected")) {
         button.style.width = "70%";
@@ -995,6 +1016,9 @@ function performReset(options) {
     // Reset all buttons with ripple animation
     const allButtons = document.querySelectorAll(".grid-btn");
     allButtons.forEach((btn, index) => {
+      // remove connected buttons
+      btn.classList.remove("connect");
+
       if (btn.classList.contains("selected")) {
         // Add fade out effect with delay based on column
         const buttonColumn =
@@ -1222,18 +1246,80 @@ document.addEventListener("mousemove", (e) => {
     targetButton !== lastSelectedButton &&
     targetButton.getAttribute("data-id") <= 8 * numColumns
   ) {
-    lastSelectedButton = targetButton;
-    toggleButton(targetButton, initialButtonState);
+    if (!isResizing) {
+      lastSelectedButton = targetButton;
+      toggleButton(targetButton, initialButtonState);
+    } else if (
+      lastSelectedNote == 0 ||
+      lastSelectedNote ==
+        Math.floor(targetButton.getAttribute("data-id") / numColumns)
+    ) {
+      lastSelectedButton = targetButton;
+      lastSelectedNote = Math.floor(
+        targetButton.getAttribute("data-id") / numColumns
+      );
+      console.log(lastSelectedNote);
+      toggleButton(targetButton, initialButtonState);
+      targetButton.classList.add("connect");
+      // targetButton.style.borderLeft = "none";
+      targetButton.style.boxShadow = "none";
+    } else {
+      initVariables();
+    }
+  }
+});
+
+// Add mouse event listeners to handle resizing
+// document.addEventListener("mousemove", (e) => {
+//   if (!isResizing || !selectionStarted) return;
+
+//   const buttons = document.elementsFromPoint(e.clientX, e.clientY);
+//   const targetButton = buttons.find((el) => el.classList.contains("grid-btn"));
+
+//   if (
+//     targetButton &&
+//     targetButton !== lastSelectedButton &&
+//     targetButton.getAttribute("data-id") <= 8 * numColumns &&
+//     lastSelectedNote == targetButton.getAttribute("data-id") / 8
+//   ) {
+
+//   }
+// });
+
+// change cursor on button boundry
+document.addEventListener("mousemove", (e) => {
+  const buttons = document.elementsFromPoint(e.clientX, e.clientY);
+  const targetButton = buttons.find((el) => el.classList.contains("grid-btn"));
+
+  if (targetButton) {
+    const rect = targetButton.getBoundingClientRect();
+    if (
+      e.clientX >= rect.right - rect.width / 5 ||
+      e.clientX <= rect.left + rect.width / 5
+    ) {
+      if (targetButton.classList.contains("selected")) {
+        document.body.style.cursor = "ew-resize";
+      }
+    } else {
+      document.body.style.cursor = "pointer";
+    }
   }
 });
 
 document.addEventListener("mouseup", () => {
-  isDragging = false;
-  selectionStarted = false;
-  lastSelectedButton = null;
+  initVariables();
   // Redraw the music notation
   drawVex();
 });
+
+// initialize variables
+function initVariables() {
+  isDragging = false;
+  isResizing = false;
+  selectionStarted = false;
+  lastSelectedButton = null;
+  lastSelectedNote = 0;
+}
 
 // Function to toggle button state
 function toggleButton(button, forceState = null) {
@@ -1245,6 +1331,7 @@ function toggleButton(button, forceState = null) {
   const shouldBeSelected =
     forceState !== null ? forceState : !button.classList.contains("selected");
 
+  // console.log(shouldBeSelected, forceState);
   if (shouldBeSelected) {
     if (!button.hasAttribute("data-original-bg")) {
       button.setAttribute(
@@ -1271,6 +1358,7 @@ function toggleButton(button, forceState = null) {
     const originalBg = button.getAttribute("data-original-bg");
     button.style.backgroundColor = originalBg || "";
     button.classList.remove("selected");
+    button.classList.remove("connect");
 
     // Remove note from noteGroup
     const noteIndex = noteGroup[buttonColumn].indexOf(buttonRow);

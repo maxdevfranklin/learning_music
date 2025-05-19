@@ -262,9 +262,9 @@ input {
   font-size: 16px;
   color: white;
   background-color: #ccc;
-  cursor: pointer;
-  transition: transform 0.3s ease, background-color 0.3s ease,
-    box-shadow 0.3s ease;
+  /* cursor: pointer; */
+  /* transition: transform 0.3s ease, background-color 0.3s ease,
+    box-shadow 0.3s ease; */
 }
 
 .grid-btn:hover {
@@ -276,6 +276,17 @@ input {
   /* background-color: #ffcc00; */
   transform: scale(1.01);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.connect {
+  border-left: none;
+  border-right: none;
+  box-shadow: 0 0px 0px rgba(0, 0, 0, 0.2);
+  transition: none;
+}
+
+.grid-btn.resizing {
+  cursor: ew-resize;
 }
 
 .oddBtn {
