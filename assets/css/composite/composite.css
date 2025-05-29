@@ -1,0 +1,51 @@
+#tempo-footer {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  background: rgba(255,255,255,0.95);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  border-radius: 16px;
+  padding: 18px 32px 14px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1000;
+}
+#tempo-footer .tempo-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+#tempo-footer label {
+  color: #888;
+  font-weight: 500;
+}
+#tempo-footer input[type="range"] {
+  width: 180px;
+}
+#tempo-footer #bpm-value {
+  color: #0074d9;
+  font-size: 1.1em;
+  margin-left: 4px;
+}
+#tempo-footer .tempo-term-label {
+  font-size: 1.3em;
+  font-weight: bold;
+  border: 2px solid #222;
+  border-radius: 8px;
+  padding: 4px 18px;
+  background: #fff;
+  margin-bottom: 2px;
+}
+@media (max-width: 600px) {
+  #tempo-footer {
+    width: 95vw;
+    padding: 12px 4vw 10px 4vw;
+    border-radius: 10px;
+  }
+  #tempo-footer input[type="range"] {
+    width: 100px;
+  }
+} 
