@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "nodemon server.js",
+    "build": "echo Building the project...",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
