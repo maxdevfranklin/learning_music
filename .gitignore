@@ -10,3 +10,4 @@ secret.txt
 
 # Ignore all .env files
 *.env
+package-lock.json

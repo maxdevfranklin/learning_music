@@ -244,10 +244,10 @@ export class Bottom extends EventEmitter {
   toggleMeter() {
     if (this.meterButton.classList.contains("expand")) {
       this.meterButton.classList.remove("expand");
-      document.getElementById("tempo-slider").classList.remove("show");
+      document.getElementById("tempo_slider").classList.remove("show");
     } else {
       this.meterButton.classList.add("expand");
-      document.getElementById("tempo-slider").classList.add("show");
+      document.getElementById("tempo_slider").classList.add("show");
     }
   }
 

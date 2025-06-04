@@ -122,7 +122,6 @@
   font-size: 1.3em;
   font-weight: bold;
   color: #222;
-  margin-bottom: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   text-align: center;
 }
@@ -357,4 +356,302 @@
 .circular-btn:disabled:hover {
   transform: none;
   box-shadow: none;
+}
+
+#bottom {
+  border-top: 1px solid #f5f5f5;
+  position: absolute;
+  left: 0px;
+  bottom: 0px;
+  width: 100%;
+  height: 109px;
+  font-size: 12px;
+  text-align: center;
+  background: #fff;
+}
+
+#bottom-left {
+  top: 50%;
+  transform: translate(0, -50%);
+  position: absolute;
+  left: 20px;
+}
+
+#bottom #bottom-left .button, #bottom #bottom-left #play-button {
+  float: left;
+}
+
+#play-button {
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  padding-left: 0;
+  padding-right: 0;
+  height: 80px;
+  width: 80px;
+  display: inline-block;
+  margin-right: 20px;
+}
+
+#play-button:before {
+  content: "\a";
+  position: absolute;
+  background-position: center;
+  background-repeat: no-repeat;
+  top: 0;
+  border-radius: 50%;
+  background-size: contain;
+}
+
+#play-button:before {
+  left: 0;
+  width: 80px;
+  height: 80px;
+  line-height: 80px;
+}
+
+#play-button:before {
+  background-color: #16a8f0;
+  background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjZweCIgaGVpZ2h0PSIzM3B4IiB2aWV3Qm94PSIwIDAgMjYgMzMiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+CgoJPGcgaWQ9IkJ1dHRvbi0vLVBsYXktQnV0dG9uIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNDEuMDAwMDAwLCAtMzMuMDAwMDAwKSIgZmlsbD0iI0ZGRkZGRiI+CgkJPGcgaWQ9ImljX3BsYXlfYXJyb3ciIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIzLjAwMDAwMCwgMjIuMDAwMDAwKSI+CgkJCTxwb2x5Z29uIGlkPSJTaGFwZSIgcG9pbnRzPSIxOC4zMzMzMzMzIDExLjQ1ODMzMzMgMTguMzMzMzMzMyA0My41NDE2NjY3IDQzLjU0MTY2NjcgMjcuNSI+PC9wb2x5Z29uPgoJCTwvZz4KCTwvZz4KPC9zdmc+Cg==);
+  background-position: 55%;
+  background-size: 34%;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+#bottom #meter-button {
+  display: none;
+}
+
+#bottom-right {
+  top: 50%;
+  transform: translate(0, -50%);
+  position: absolute;
+  right: 20px;
+}
+
+#bottom #bottom-right .button {
+  width: 8.5ch;
+}
+
+#bottom .button {
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  padding-left: 0;
+  padding-right: 0;
+  min-width: 62px;
+  padding-top: 65px;
+  font-size: 15px;
+  color: #666;
+  width: 9.5ch;
+  display: inline-block;
+  margin-left: 8px;
+  border: none;
+}
+
+#tempo-slider {
+  left: 50%;
+  transform: translate(-50%, 0);
+  position: absolute;
+  left: calc(50% - 31px);
+  top: calc(50% - 15px);
+  text-align: center;
+  min-width: 200px;
+  width: calc(100% - 780px);
+  max-width: 450px;
+}
+
+#tempo-slider .range-cover {
+  display: inline-block;
+  left: 76px;
+  height: 28px;
+  position: absolute;
+  width: calc(100% - 120px - 26px);
+}
+
+.range-cover {
+  overflow: visible;
+}
+
+.range-cover::before {
+  position: absolute;
+  width: 100%;
+  content: "\a";
+  height: 8px;
+  background: #f5f5f5;
+  top: 10px;
+  border-radius: 4px;
+  left: 0;
+  cursor: pointer;
+}
+
+.range-cover [type=range], .range-cover [type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+}
+
+.range-cover [type=range] {
+  margin: -5px 0 0 0;
+  padding: 0;
+  width: calc(100% + 32px);
+  height: 60px;
+  position: absolute;
+  left: -16px;
+  opacity: 0;
+  top: -12px;
+  cursor: pointer;
+}
+
+.range-cover .range-dupe {
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 50%;
+  pointer-events: none;
+  background-color: #16a8f0;
+  overflow: visible;
+  border-radius: 4px;
+  z-index: 1;
+}
+
+.range-cover .range-dupe::before {
+  position: absolute;
+  right: -16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
+  background: #16a8f0;
+  content: "\a";
+  top: -12px;
+}
+
+#tempo-slider label {
+  color: #666;
+  float: left;
+  font-size: 15px;
+  display: block;
+  line-height: 25px;
+  margin-left: -10px;
+}
+
+#tempo-slider input.input-number {
+    margin-left: 10px;
+    color: #16a8f0;
+    font-size: 15px;
+    border: none;
+    float: right;
+    margin-top: 2px;
+    width: 40px;
+    padding: 0;
+}
+
+#tempo-slider input.input-number, #tempo-slider, #reset-button, #play-button, #bottom .clear-button, #bottom .button {
+    font-family: "Poppins", sans-serif;
+    letter-spacing: .1ex;
+}
+
+#bottom .button:before {
+  content: "\a";
+  position: absolute;
+  background-position: center;
+  background-repeat: no-repeat;
+  top: 0;
+  border-radius: 50%;
+  background-size: contain;
+}
+
+#bottom .button:before {
+  left: 50%;
+  transform: translate(-50%, 0);
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  line-height: 60px;
+}
+
+#bottom .button:before {
+  border: 1px solid rgba(0, 0, 0, .1);
+}
+
+
+#instrument-toggle-button {
+  width: 9.6ch;
+}
+
+#instrument-toggle-button.instrument-piano::before {
+  background-image: url(../../songmaker/images/instruments/tonal-piano.svg);
+}
+
+#instrument-toggle-button.instrument-woodwind::before {
+  background-image: url(../../songmaker/images/instruments/tonal-woodwind.svg);
+}
+
+#instrument-toggle-button.instrument-strings::before {
+  background-image: url(../../songmaker/images/instruments/tonal-violin.svg);
+}
+
+#instrument-toggle-button.instrument-marimba::before {
+  background-image: url(../../songmaker/images/instruments/tonal-marimba.svg);
+}
+
+#instrument-toggle-button.instrument-synth::before {
+  background-image: url(../../songmaker/images/instruments/tonal-synth.svg);
+}
+
+@media (max-width: 767px) {
+  #instrument-toggle-button {
+    top: 13px;
+    left: 23.5vw;
+  }
+}
+
+@media (max-width: 495px) {
+  #instrument-toggle-button {
+    top: 5px;
+    left: 36vw;
+  }
+}
+
+
+#percussion-toggle-button {
+  width: 9ch;
+  margin-left: 8px;
+}
+
+#percussion-toggle-button.instrument-conga::before {
+  background-image: url(../../songmaker/images/instruments/perc-conga.svg);
+}
+
+#percussion-toggle-button.instrument-electronic::before {
+  background-image: url(../../songmaker/images/instruments/perc-drum-machine.svg);
+}
+
+#percussion-toggle-button.instrument-kit::before {
+  background-image: url(../../songmaker/images/instruments/perc-snare-drum.svg);
+}
+
+#percussion-toggle-button.instrument-blocks::before {
+  background-image: url(../../songmaker/images/instruments/perc-woodblock.svg);
+}
+
+
+#reset-button::before {
+  background-image: url(../../songmaker/images/icon-undo.svg);
+}
+
+@media (max-width: 767px) {
+  #percussion-toggle-button {
+    top: 13px;
+    left: 34.5vw;
+  }
+}
+
+@media (max-width: 495px) {
+  #percussion-toggle-button {
+    top: 5px;
+    left: 53vw;
+  }
 }

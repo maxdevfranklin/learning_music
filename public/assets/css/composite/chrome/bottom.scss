@@ -1,7 +1,7 @@
 @import "colors.scss";
 
-#tempo-slider input.input-number,
-#tempo-slider,
+#tempo_slider input.input-number,
+#tempo_slider,
 #reset-button,
 #play-button,
 #bottom .clear-button,
@@ -841,7 +841,7 @@
   }
 }
 
-#tempo-slider {
+#tempo_slider {
   left: 50%;
   transform: translate(-50%, 0);
   position: absolute;
@@ -854,18 +854,18 @@
 }
 
 @media (min-width: 768px) {
-  #tempo-slider.has-midi {
+  #tempo_slider.has-midi {
     left: calc(50% - 57px);
   }
 }
 
 @media (min-width: 768px) and (max-width: 959px) {
-  #tempo-slider.has-midi {
+  #tempo_slider.has-midi {
     left: calc(50% - 49px);
   }
 }
 
-#tempo-slider .range-cover {
+#tempo_slider .range-cover {
   display: inline-block;
   left: calc(60px + 16px);
   height: 28px;
@@ -873,7 +873,7 @@
   width: calc(100% - 120px - 26px);
 }
 
-#tempo-slider input.input-number {
+#tempo_slider input.input-number {
   margin-left: 10px;
   color: $blue;
   font-size: 15px;
@@ -884,7 +884,7 @@
   padding: 0;
 }
 
-#tempo-slider label {
+#tempo_slider label {
   color: $label-gray;
   float: left;
   font-size: 15px;
@@ -894,19 +894,19 @@
 }
 
 @media (min-width: 768px) and (max-width: 959px) {
-  #tempo-slider {
+  #tempo_slider {
     width: calc(100% - 660px);
     left: calc(50% - 13px);
   }
 
-  #tempo-slider .range-cover {
+  #tempo_slider .range-cover {
     left: calc(60px + 5px);
     width: calc(100% - 120px - 6px);
   }
 }
 
 @media (max-width: 767px) {
-  #tempo-slider {
+  #tempo_slider {
     border: 1px solid $background-gray;
     height: 250px;
     width: 43px;
@@ -919,22 +919,22 @@
     min-width: 0;
   }
 
-  #tempo-slider label {
+  #tempo_slider label {
     display: none;
   }
 
-  #tempo-slider.show {
+  #tempo_slider.show {
     overflow: visible;
     display: block;
   }
 
-  #tempo-slider .range-cover {
+  #tempo_slider .range-cover {
     transform: rotate(270deg) translate(-108px, -133px);
     width: calc(172px - 18px);
     margin: 0;
   }
 
-  #tempo-slider input.input-number {
+  #tempo_slider input.input-number {
     margin-top: -10px;
     float: none;
     position: absolute;
@@ -948,7 +948,7 @@
 }
 
 @media (max-width: 495px) {
-  #tempo-slider {
+  #tempo_slider {
     top: -203px;
     left: 70vw;
   }

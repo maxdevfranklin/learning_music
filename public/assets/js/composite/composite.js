@@ -17,11 +17,29 @@ let isPlaying = false;
 let stopRequested = false;
 let currentPlaybackTimeout = null;
 let isResizing = false;
+let currentTimeSignature = "4/4";
 
+
+// Add history stacks for undo/redo
+const historyStack = [];
+const redoStack = [];
+const MAX_HISTORY = 50;
+
+// Number of pitches (0-7 for Do to Si, plus 2 for rests)
+// if you want to change this value, you need to change the buttonNote, notePair, noteIndex, and noteColor arrays accordingly
+const numPitch   = 8;
 const numColumns = 32;
-const buttonNote = ["Do", "Ti", "La", "Sol", "Fa", "Mi", "Re", "Do"];
-const noteIndex = [48, 50, 52, 53, 55, 57, 59, 60];
-const noteColor = [
+const notePair   = ["c/4", "d/4", "e/4", "f/4", "g/4", "a/4", "b/4", "c/5", "d/5", "e/5", "f/5", "g/5", "a/5", "b/5", "c/6"];
+const buttonNote = ["Do", "Ti", "La", "Sol", "Fa", "Mi", "Re", "Do", "Ti", "La", "Sol", "Fa", "Mi", "Re", "Do"];
+const noteIndex  = [48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72];
+const noteColor  = [
+  "#e33059",
+  "#f7943d",
+  "#edd929",
+  "#95c631",
+  "#11826d",
+  "#5b37cc",
+  "#ea57b2",
   "#e33059",
   "#f7943d",
   "#edd929",
@@ -31,12 +49,25 @@ const noteColor = [
   "#ea57b2",
   "#e33059",
 ];
+
 let noteGroup = [];
-for (let i = 0; i < 32; i++) {
+for (let i = 0; i < numColumns; i++) {
   noteGroup.push([]);
 }
-const notePair = ["c/4", "d/4", "e/4", "f/4", "g/4", "a/4", "b/4", "c/5"];
-const EasePair = ["qr", "q", "q", "q", "q", "q", "q", "q"];
+
+function getDuration(length) {
+  const map = {
+    1   : { duration: "8",  dots: 0 },
+    1.5 : { duration: "8d", dots: 1 },
+    2   : { duration: "q",  dots: 0 },
+    3   : { duration: "qd", dots: 1 }, // dotted quarter
+    4   : { duration: "h",  dots: 0 },
+    6   : { duration: "hd", dots: 1 }, // dotted half
+    8   : { duration: "w",  dots: 0 },
+    12  : { duration: "wd", dots: 1 },
+  };
+  return map[length] || { duration: "8", dots: 0 }; // fallback
+}
 
 const gridContainer = document.getElementById("noteGroup");
 
@@ -49,19 +80,14 @@ let lastSelectedNote = 0;
 let selectionStarted = false;
 let initialButtonState = false; // true if first button was selected, false if unselected
 
-for (let i = 1; i <= 10 * numColumns; i++) {
+for (let i = 1; i <= (numPitch + 2) * numColumns; i++) {
   const button = document.createElement("button");
   button.classList.add("grid-btn");
   button.setAttribute("data-id", i);
   let indexColumn = i % numColumns;
   let indexRow = Math.floor(i / numColumns);
-  if (i <= 8 * numColumns) {
-    if (Math.floor((indexColumn - 1) / 8) % 2) {
-      button.classList.add("oddBtn");
-    } else {
-      button.classList.add("evenBtn");
-    }
-
+  if (i <= numPitch * numColumns) {
+    button.classList.add("evenBtn");
     if ((indexColumn - 1) % 2 && indexColumn != 0) {
       button.classList.add("mainDivider");
     }
@@ -97,6 +123,7 @@ for (let i = 1; i <= 10 * numColumns; i++) {
       } else {
         toggleButton(button, initialButtonState);
       }
+      makeResizeBlock();
     });
 
     gridContainer.appendChild(button);
@@ -109,35 +136,23 @@ for (let i = 1; i <= 10 * numColumns; i++) {
       noteLabel.style.verticalAlign = "center";
       noteLabel.textContent = buttonNote[indexRow];
     }
-    if (i > 7 * numColumns) button.style.marginBottom = "30px";
+    // if (i > (numPitch - 1) * numColumns) button.style.marginBottom = "30px";
   } else {
-    button.style.width = "50%";
-    button.style.height = "50%";
-    button.style.marginLeft = "25%";
-    button.style.marginTop = "25%";
-    button.style.borderRadius = "50%";
-    button.style.backgroundColor = "#ccc";
-    button.addEventListener("click", () => {
-      const index = button.getAttribute("data-id");
-      let buttonRow = Math.floor(index / numColumns);
+    button.style.width            = "50%";
+    button.style.aspectRatio      = "1";
+    button.style.margin           = "auto";
+    button.style.backgroundColor  = "#ccc";
 
-      // console.log(buttonRow);
+    let index = button.getAttribute("data-id");
+    let buttonRow = Math.floor(index / numColumns);
+    if (buttonRow == numPitch) button.style.borderRadius = "20%";
+    else                button.style.borderRadius = "50%";
+    button.addEventListener("click", () => {
       button.classList.toggle("selected");
       if (button.classList.contains("selected")) {
-        button.style.width = "70%";
-        button.style.height = "65%";
-        button.style.marginLeft = "15%";
-        button.style.marginTop = "15%";
-        button.style.backgroundColor = "#16a8f0";
-        button.style.borderLeft = "0px";
-        button.style.borderTop = "0px";
-        if (buttonRow == 8) button.style.borderRadius = "20%";
+        button.style.backgroundColor  = "#16a8f0";
       } else {
-        button.style.width = "50%";
-        button.style.height = "50%";
-        button.style.marginLeft = "25%";
-        button.style.backgroundColor = "#ccc";
-        button.style.borderRadius = "50%";
+        button.style.backgroundColor  = "#ccc";
       }
     });
     gridContainer.appendChild(button);
@@ -146,10 +161,10 @@ for (let i = 1; i <= 10 * numColumns; i++) {
 
 // Italian tempo terms mapping
 const tempoTerms = [
-  { min: 20, max: 40, term: "Grave" },
-  { min: 41, max: 60, term: "Largo" },
-  { min: 61, max: 76, term: "Adagio" },
-  { min: 77, max: 108, term: "Andante" },
+  { min: 20,  max: 40,  term: "Grave" },
+  { min: 41,  max: 60,  term: "Largo" },
+  { min: 61,  max: 76,  term: "Adagio" },
+  { min: 77,  max: 108, term: "Andante" },
   { min: 109, max: 120, term: "Moderato" },
   { min: 121, max: 168, term: "Allegro" },
   { min: 169, max: 200, term: "Presto" },
@@ -162,20 +177,6 @@ function getTempoTerm(bpm) {
   }
   return "Allegro";
 }
-
-// Time signature handling
-const timeSignatureSelect = document.getElementById("time-signature");
-let currentTimeSignature = "4/4";
-timeSignatureSelect.addEventListener("change", (e) => {
-  currentTimeSignature = e.target.value;
-  // Update beats in SongOptions
-  if (currentTimeSignature === "4/4") {
-    songOptions.beats = 4;
-  } else if (currentTimeSignature === "3/4") {
-    songOptions.beats = 3;
-  }
-  drawVex();
-});
 
 // Tempo Italian label handling
 const tempoItalianLabel = document.getElementById("tempo-italian");
@@ -209,20 +210,6 @@ tempoInputs.forEach((input) => {
   });
 });
 updateTempoItalianLabel();
-
-// Dynamic markings handling
-const dynamicMarkingsSelect = document.getElementById("dynamic-markings");
-const dynamicMarkingDisplay = document.getElementById(
-  "dynamic-marking-display"
-);
-let currentDynamicMarking = "";
-dynamicMarkingsSelect.addEventListener("change", (e) => {
-  currentDynamicMarking = e.target.value;
-  dynamicMarkingDisplay.textContent = currentDynamicMarking;
-  // Only update the display, do not break or block any other functionality
-  drawVex();
-});
-
 drawVex();
 
 const playButton = document.getElementById("play-button");
@@ -230,131 +217,30 @@ const playButton = document.getElementById("play-button");
 // Set up event listener
 playButton.addEventListener("click", togglePlayback);
 
-// Add styles for play button transitions
-const playButtonStyles = document.createElement("style");
-playButtonStyles.textContent = `
-  .circular-btn {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .circular-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 15px rgba(0, 163, 255, 0.5);
-    background: #1aabff !important;
-  }
-
-  .circular-btn:active {
-    transform: scale(0.95);
-  }
-
-  .circular-btn::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    background: radial-gradient(circle, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 70%);
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    z-index: 1;
-    pointer-events: none;
-    opacity: 0;
-    transition: all 0.3s ease;
-  }
-
-  .circular-btn:hover::before {
-    width: 150%;
-    height: 150%;
-    opacity: 0.3;
-  }
-
-  .play-icon, .pause-icon {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    transition: all 0.3s ease;
-  }
-
-  .play-icon {
-    transform: translate(-45%, -50%);
-  }
-
-  .playing .play-icon {
-    opacity: 0;
-    transform: translate(-45%, -50%) scale(0);
-  }
-
-  .pause-icon {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0);
-  }
-
-  .playing .pause-icon {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-
-  @keyframes buttonPulse {
-    0% { box-shadow: 0 0 0 0 rgba(0, 163, 255, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(0, 163, 255, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(0, 163, 255, 0); }
-  }
-
-  .playing {
-    animation: buttonPulse 2s infinite;
-  }
-`;
-document.head.appendChild(playButtonStyles);
-
 /**
  * Toggles music playback state
  */
 function togglePlayback() {
   const playButton = document.getElementById("play-button");
-  const playIcon = playButton.querySelector(".play-icon");
-  const pauseIcon = playButton.querySelector(".pause-icon");
 
   if (isPlaying) {
     // Switch to play icon
     playButton.classList.remove("playing");
-    playIcon.style.display = "block";
-    pauseIcon.style.display = "none";
     stopPlayback();
   } else {
     // Switch to pause icon
     playButton.classList.add("playing");
-    playIcon.style.display = "none";
-    pauseIcon.style.display = "block";
     startPlayback();
   }
 }
 
 function stopPlayback() {
   const playButton = document.getElementById("play-button");
-  const playIcon = playButton.querySelector(".play-icon");
-  const pauseIcon = playButton.querySelector(".pause-icon");
-
   stopRequested = true;
   isPlaying = false;
   playButton.classList.remove("playing");
 
-  // Animate icon transition
-  pauseIcon.style.opacity = "0";
-  pauseIcon.style.transform = "translate(-50%, -50%) scale(0)";
-  setTimeout(() => {
-    pauseIcon.style.display = "none";
-    playIcon.style.display = "block";
-    setTimeout(() => {
-      playIcon.style.opacity = "1";
-      playIcon.style.transform = "translate(-45%, -50%) scale(1)";
-    }, 50);
-  }, 300);
-
-  const progressBar = document.getElementById("playback-progress");
+  const progressBar = document.getElementById("playback_progress");
   if (progressBar) {
     progressBar.style.transition = "all 0.3s ease-out";
     progressBar.style.opacity = "0";
@@ -381,21 +267,6 @@ function stopPlayback() {
  * Starts music playback
  */
 function startPlayback() {
-  const playButton = document.getElementById("play-button");
-  const playIcon = playButton.querySelector(".play-icon");
-  const pauseIcon = playButton.querySelector(".pause-icon");
-
-  // Animate icon transition
-  playIcon.style.opacity = "0";
-  playIcon.style.transform = "translate(-45%, -50%) scale(0)";
-  setTimeout(() => {
-    playIcon.style.display = "none";
-    pauseIcon.style.display = "block";
-    setTimeout(() => {
-      pauseIcon.style.opacity = "1";
-      pauseIcon.style.transform = "translate(-50%, -50%) scale(1)";
-    }, 50);
-  }, 300);
 
   isPlaying = true;
   stopRequested = false;
@@ -408,139 +279,6 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// Enhanced visual effects styles
-const enhancedStyles = document.createElement("style");
-enhancedStyles.textContent = `
-  .grid-btn {
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
-  }
-
-  .grid-btn::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    background: radial-gradient(circle, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 70%);
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    z-index: 1;
-  }
-
-  .playing-column {
-    position: relative;
-    transform: scale(1.05);
-  }
-
-  .playing-column::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 120%;
-    height: 120%;
-    background: radial-gradient(circle, rgba(0,116,217,0.3) 0%, rgba(0,116,217,0) 70%);
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    animation: rippleEffect 1s ease-out infinite;
-  }
-
-  .playing-column::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.2);
-    box-shadow: 
-      0 0 15px rgba(0, 123, 255, 0.6),
-      inset 0 0 15px rgba(255, 255, 255, 0.4);
-    animation: glowPulse 0.6s ease-in-out infinite;
-    pointer-events: none;
-    z-index: 1;
-    border-radius: 4px;
-    backdrop-filter: blur(2px);
-  }
-
-  .playing-column.selected {
-    transform: scale(1.1);
-    box-shadow: 0 0 20px rgba(0, 123, 255, 0.8);
-  }
-
-  .next-column {
-    position: relative;
-    transform: scale(1.02);
-  }
-
-  .next-column::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%);
-    transform: translate(-50%, -50%);
-    border-radius: 4px;
-    animation: previewPulse 1s ease-in-out infinite;
-  }
-
-  @keyframes rippleEffect {
-    0% {
-      width: 0;
-      height: 0;
-      opacity: 0.5;
-    }
-    100% {
-      width: 200%;
-      height: 200%;
-      opacity: 0;
-    }
-  }
-
-  @keyframes glowPulse {
-    0% { 
-      opacity: 0.8;
-      box-shadow: 
-        0 0 15px rgba(0, 123, 255, 0.6),
-        inset 0 0 15px rgba(255, 255, 255, 0.4);
-    }
-    50% { 
-      opacity: 0.4;
-      box-shadow: 
-        0 0 25px rgba(0, 123, 255, 0.8),
-        inset 0 0 25px rgba(255, 255, 255, 0.6);
-    }
-    100% { 
-      opacity: 0.8;
-      box-shadow: 
-        0 0 15px rgba(0, 123, 255, 0.6),
-        inset 0 0 15px rgba(255, 255, 255, 0.4);
-    }
-  }
-
-  @keyframes previewPulse {
-    0% { opacity: 0.3; }
-    50% { opacity: 0.1; }
-    100% { opacity: 0.3; }
-  }
-
-  .selected {
-    animation: selectedPulse 2s ease-in-out infinite;
-  }
-
-  @keyframes selectedPulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-  }
-`;
-document.head.appendChild(enhancedStyles);
-
 // Update the playMusic function with enhanced visual effects
 async function playMusic(startIndex = 0) {
   if (stopRequested) {
@@ -549,7 +287,7 @@ async function playMusic(startIndex = 0) {
   }
 
   // Reset progress bar at start
-  const progressBar = document.getElementById("playback-progress");
+  const progressBar = document.getElementById("playback_progress");
   if (startIndex === 0) {
     progressBar.style.width = "0%";
   }
@@ -559,9 +297,9 @@ async function playMusic(startIndex = 0) {
   allButtons.forEach((btn) => {
     btn.classList.remove("playing-column");
     btn.classList.remove("next-column");
-    btn.style.transform = btn.classList.contains("selected")
-      ? "scale(1.05)"
-      : "scale(1)";
+    // btn.style.transform = btn.classList.contains("selected")
+    //   ? "scale(1.05)"
+    //   : "scale(1)";
   });
 
   for (let i = startIndex; i < numColumns; i++) {
@@ -608,7 +346,7 @@ async function playMusic(startIndex = 0) {
     // Play notes with visual feedback
     if (noteGroup[i].length > 0) {
       noteGroup[i].forEach((note) => {
-        const noteButton = currentColumnButtons[7 - note];
+        const noteButton = currentColumnButtons[numPitch - 1 - note];
         if (noteButton) {
           // Add ripple effect when note plays
           const ripple = document.createElement("div");
@@ -654,7 +392,43 @@ async function playMusic(startIndex = 0) {
   }
 }
 
-function drawVex() {
+function collapseNotes(raw) {
+  
+  let result = [];
+  for (let i = 0; i < raw.length; i++) {
+    result.push([]);
+  }
+  let i = 0;
+
+  while (i < raw.length) {
+    const current = raw[i];
+    let length = 1;
+
+    while (
+      (i + length) % 4 !== 0 &&
+      JSON.stringify(raw[i + length]) === JSON.stringify(current)
+    ) {
+      length++;
+    }
+
+    const { duration, dots } = getDuration(length * 2);
+    const isRest = current.length === 0;
+    const pitch = isRest ? "b/4" : notePair[current[0]];
+    const note = {
+      keys: [pitch],
+      duration: isRest ? duration + "r" : duration,
+      dots: dots,
+      length: length
+    };
+
+    result[i] = note;
+    i += length;
+  }
+
+  return result;
+}
+
+function drawVex(width = window.innerWidth) {
   // Initialize VexFlow
   const div = document.getElementById("notation");
   div.innerHTML = "";
@@ -662,160 +436,98 @@ function drawVex() {
   const VF = Vex.Flow;
   const renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
 
-  let sheetLength = 1300;
+  let sheetLength = width * 0.85 + 140;
+  let noteWidth   = (width * 0.85 + 50) / numColumns;
 
   renderer.resize(sheetLength, 150);
   const context = renderer.getContext();
 
   let stave = new VF.Stave(10, 20, sheetLength - 20);
   stave.setContext(context).draw();
+  
+  var collapsedNotes = collapseNotes(noteGroup);
 
   for (let i = 0; i < 32; i++) {
-    let stave1 = new VF.Stave(10, 20, 38);
-    if (i > 0) {
-      stave1 = new VF.Stave(38 * i + 74, 20, 38);
-    }
+    const x = i === 0 ? 10 : noteWidth * i + 74;
+    let stave1 = new VF.Stave(x, 20, noteWidth);
+  
     if (i < 31 && i % songOptions.beats !== songOptions.beats - 1) {
       stave1.setBegBarType(VF.Barline.type.NONE);
       stave1.setEndBarType(VF.Barline.type.NONE);
     }
+  
     stave1.setBegBarType(VF.Barline.type.NONE);
+  
     if (i == 0) {
       stave1.addClef("treble").addTimeSignature(currentTimeSignature);
     }
+  
     stave1.setContext(context).draw();
 
     var notes = [];
-    if (noteGroup[i].length > 0) {
-      let tempKeys = [];
-      for (let k = 0; k < noteGroup[i].length; k++) {
-        tempKeys.push(notePair[noteGroup[i][k]]);
-      }
+
+    if (collapsedNotes[i].keys.length) {
       notes.push(
         new VF.StaveNote({
           clef: "treble",
-          keys: tempKeys,
-          duration: "q",
+          keys: collapsedNotes[i].keys,
+          duration: collapsedNotes[i].duration
         })
       );
-    }
-    if (notes.length > 0) {
       var voice = new VF.Voice({
-        num_beats: 1,
+        num_beats: collapsedNotes[i].length,
         beat_value: parseInt(currentTimeSignature.split("/")[1]),
+        strict: false,
       });
       voice.addTickables(notes);
+
       var formatter = new VF.Formatter()
         .joinVoices([voice])
         .format([voice], 40);
       voice.draw(context, stave1);
     }
-    // Draw dynamic marking below percussion line (at the bottom of the stave)
-    if (currentDynamicMarking && i === 0) {
-      // Draw the dynamic marking as plain text below the staff
-      context.save();
-      context.setFont("Serif", 18, "bold");
-      context.setFillStyle("#222");
-      // Position: x = start of stave1, y = stave1.getBottomY() + offset
-      context.fillText(
-        currentDynamicMarking,
-        stave1.getX() + 10,
-        stave1.getBottomY() + 25
-      );
-      context.restore();
-    }
   }
+
+  // add 60px for padding right
+  const svg = div.querySelector("svg");
+  svg.style.paddingRight = "70px";
+
+  let vftimesignature = document.getElementsByClassName('vf-timesignature');
+  if (vftimesignature.length) {
+    vftimesignature[0].innerHTML += `<path d="M18.5303 9.4697C18.8232 9.7626 18.8232 10.2374 18.5303 10.5303L12.5303 16.5303C12.2374 16.8232 11.7626 16.8232 11.4697 16.5303L5.4697 10.5303C5.1768 10.2374 5.1768 9.7626 5.4697 9.4697C5.7626 9.1768 6.2374 9.1768 6.5303 9.4697L12 14.9393L17.4697 9.4697C17.7626 9.1768 18.2374 9.1768 18.5303 9.4697Z" fill="#000000"/>`;
+  }
+  invokeVFListener();
 }
 
-// Update reset button styles
-const resetStyles = document.createElement("style");
-resetStyles.textContent = `
-  .circular-btn {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
+function invokeVFListener() {
+  // Your code here
+  // Time signature handling
+  const timeSignatureToggle = document.getElementsByClassName("vf-timesignature");
+  if (timeSignatureToggle.length){
+    timeSignatureToggle[0].addEventListener("click", (e) => {
+      // Update beats in SongOptions
+      if (currentTimeSignature === "4/4") {
+        // set as 3/4
+        songOptions.beats = 3;
+        currentTimeSignature = "3/4";
+      } else if (currentTimeSignature === "3/4") {
+        // set as 4/4
+        songOptions.beats = 4;
+        currentTimeSignature = "4/4";
+      }
+      drawVex();
+    });
+  } else {
+    console.log('no time signature');
   }
-
-  .circular-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 15px rgba(0, 163, 255, 0.5);
-    background: #1aabff !important;
-  }
-
-  .circular-btn:active {
-    transform: scale(0.95);
-  }
-
-  .circular-btn::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    background: radial-gradient(circle, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 70%);
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    z-index: 1;
-    pointer-events: none;
-    opacity: 0;
-    transition: all 0.3s ease;
-  }
-
-  .circular-btn:hover::before {
-    width: 150%;
-    height: 150%;
-    opacity: 0.3;
-  }
-
-  .circular-btn svg {
-    transition: transform 0.5s ease;
-  }
-
-  .circular-btn:hover svg {
-    transform: rotate(-180deg);
-  }
-
-  .circular-btn.resetting svg {
-    animation: spinReset 0.8s ease-in-out;
-  }
-
-  @keyframes spinReset {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(-360deg); }
-  }
-
-  .circular-btn::after {
-    content: '';
-    position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    border-radius: 50%;
-    background: linear-gradient(45deg, #00A3FF, #66c7ff);
-    z-index: -1;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  .circular-btn:hover::after {
-    opacity: 0.5;
-  }
-`;
-document.head.appendChild(resetStyles);
-
-// Add history stacks for undo/redo
-const historyStack = [];
-const redoStack = [];
-const MAX_HISTORY = 50;
+};
 
 function saveState() {
   const state = {
     notes: JSON.parse(JSON.stringify(noteGroup)),
     tempo: songOptions.tempo,
     timeSignature: currentTimeSignature,
-    dynamics: currentDynamicMarking,
+    // dynamics: currentDynamicMarking,
   };
   historyStack.push(state);
   if (historyStack.length > MAX_HISTORY) {
@@ -830,7 +542,7 @@ function undo() {
       notes: JSON.parse(JSON.stringify(noteGroup)),
       tempo: songOptions.tempo,
       timeSignature: currentTimeSignature,
-      dynamics: currentDynamicMarking,
+      // dynamics: currentDynamicMarking,
     };
     redoStack.push(currentState);
 
@@ -845,7 +557,7 @@ function redo() {
       notes: JSON.parse(JSON.stringify(noteGroup)),
       tempo: songOptions.tempo,
       timeSignature: currentTimeSignature,
-      dynamics: currentDynamicMarking,
+      // dynamics: currentDynamicMarking,
     };
     historyStack.push(currentState);
 
@@ -858,7 +570,7 @@ function restoreState(state) {
   noteGroup = JSON.parse(JSON.stringify(state.notes));
   songOptions.tempo = state.tempo;
   currentTimeSignature = state.timeSignature;
-  currentDynamicMarking = state.dynamics;
+  // currentDynamicMarking = state.dynamics;
 
   // Update UI
   updateUI();
@@ -878,21 +590,11 @@ function updateUI() {
     songOptions.beats = currentTimeSignature === "4/4" ? 4 : 3;
   }
 
-  // Update dynamics
-  if (dynamicMarkingsSelect) {
-    dynamicMarkingsSelect.value = currentDynamicMarking;
-    if (dynamicMarkingDisplay) {
-      dynamicMarkingDisplay.textContent = currentDynamicMarking;
-    }
-  }
-
   // Update grid buttons
   const allButtons = document.querySelectorAll(".grid-btn");
   allButtons.forEach((btn) => {
-    const buttonColumn =
-      (parseInt(btn.getAttribute("data-id")) - 1) % numColumns;
-    const buttonRow =
-      7 - Math.floor(parseInt(btn.getAttribute("data-id")) / numColumns);
+    const buttonColumn = (parseInt(btn.getAttribute("data-id")) - 1) % numColumns;
+    const buttonRow = numPitch - 1 - Math.floor(parseInt(btn.getAttribute("data-id")) / numColumns);
 
     const isSelected = noteGroup[buttonColumn].includes(buttonRow);
     btn.classList.toggle("selected", isSelected);
@@ -903,23 +605,6 @@ function updateUI() {
     }
   });
 }
-
-// Add drag styles
-const dragStyles = document.createElement("style");
-dragStyles.textContent = `
-  .grid-btn {
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-  }
-
-  .grid-btn.drag-hover {
-    transform: scale(1.1);
-    transition: transform 0.1s ease;
-  }
-`;
-document.head.appendChild(dragStyles);
 
 // Restore resetGrid function
 function resetGrid(
@@ -932,8 +617,6 @@ function resetGrid(
 ) {
   // Save current state before reset
   saveState();
-
-  const resetButton = document.getElementById("reset-button");
 
   // Add confirmation dialog if there are notes and we're resetting notes
   if (options.notes) {
@@ -993,7 +676,7 @@ function performReset(options) {
 
   // Reset progress bar with fade
   if (options.notes) {
-    const progressBar = document.getElementById("playback-progress");
+    const progressBar = document.getElementById("playback_progress");
     if (progressBar) {
       progressBar.style.transition = "all 0.3s ease-out";
       progressBar.style.opacity = "0";
@@ -1036,9 +719,7 @@ function performReset(options) {
             btn.style.opacity = "1";
             btn.style.transform = "scale(1)";
 
-            const buttonRow =
-              7 -
-              Math.floor(parseInt(btn.getAttribute("data-id")) / numColumns);
+            const buttonRow = numPitch - 1 - Math.floor(parseInt(btn.getAttribute("data-id")) / numColumns);
             const columnNotes = noteGroup[buttonColumn];
             const noteIndex = columnNotes.indexOf(buttonRow);
             if (noteIndex > -1) {
@@ -1079,22 +760,6 @@ function performReset(options) {
     }
   }
 
-  if (options.dynamics) {
-    // Reset dynamic markings with fade
-    if (dynamicMarkingsSelect) {
-      dynamicMarkingsSelect.value = "";
-      currentDynamicMarking = "";
-      if (dynamicMarkingDisplay) {
-        dynamicMarkingDisplay.style.transition = "opacity 0.3s ease";
-        dynamicMarkingDisplay.style.opacity = "0";
-        setTimeout(() => {
-          dynamicMarkingDisplay.textContent = "";
-          dynamicMarkingDisplay.style.opacity = "1";
-        }, 300);
-      }
-    }
-  }
-
   // Update the music notation
   drawVex();
 
@@ -1117,88 +782,142 @@ function performReset(options) {
   }, 800);
 }
 
-// Add context menu for reset options
-function addResetContextMenu() {
-  const resetButton = document.getElementById("reset-button");
 
-  resetButton.addEventListener("contextmenu", (e) => {
-    e.preventDefault();
+function checkConnectedNotes() {
+  let elements = Array.from(document.querySelectorAll('.selected.grid-btn'));
 
-    const menu = document.createElement("div");
-    menu.className = "reset-context-menu";
-    menu.innerHTML = `
-      <div class="menu-item" data-action="all">Reset All</div>
-      <div class="menu-item" data-action="notes">Reset Notes Only</div>
-      <div class="menu-item" data-action="tempo">Reset Tempo Only</div>
-      <div class="menu-item" data-action="time-signature">Reset Time Signature Only</div>
-      <div class="menu-item" data-action="dynamics">Reset Dynamics Only</div>
-    `;
+  let sorted = elements.sort((a, b) => Number(a.dataset.id) - Number(b.dataset.id));
 
-    // Position menu
-    menu.style.position = "absolute";
-    menu.style.left = `${e.pageX}px`;
-    menu.style.top = `${e.pageY}px`;
+  // Group connected elements into blocks
+  let blocks = [];
+  let currentBlock = [];
 
-    // Handle menu item clicks
-    menu.addEventListener("click", (e) => {
-      const action = e.target.dataset.action;
-      switch (action) {
-        case "all":
-          resetGrid({
-            notes: true,
-            tempo: true,
-            timeSignature: true,
-            dynamics: true,
-          });
-          break;
-        case "notes":
-          resetGrid({
-            notes: true,
-            tempo: false,
-            timeSignature: false,
-            dynamics: false,
-          });
-          break;
-        case "tempo":
-          resetGrid({
-            notes: false,
-            tempo: true,
-            timeSignature: false,
-            dynamics: false,
-          });
-          break;
-        case "time-signature":
-          resetGrid({
-            notes: false,
-            tempo: false,
-            timeSignature: true,
-            dynamics: false,
-          });
-          break;
-        case "dynamics":
-          resetGrid({
-            notes: false,
-            tempo: false,
-            timeSignature: false,
-            dynamics: true,
-          });
-          break;
-      }
-      document.body.removeChild(menu);
-    });
+  for (let i = 0; i < sorted.length; i++) {
+    let currentId = Number(sorted[i].dataset.id);
+    let prevId = i > 0 ? Number(sorted[i - 1].dataset.id) : null;
+    if (prevId % 32 == 0) prevId = null; // if prev element is in the end of line, set null
 
-    document.body.appendChild(menu);
+    if (i === 0 || currentId === prevId + 1) {
+      currentBlock.push(sorted[i]);
+    } else {
+      blocks.push(currentBlock);
+      currentBlock = [sorted[i]];
+    }
+  }
+  if (currentBlock.length) {
+    blocks.push(currentBlock); // push the final block
+  }
 
-    // Remove menu when clicking outside
-    document.addEventListener("click", function removeMenu(e) {
-      if (!menu.contains(e.target)) {
-        if (document.body.contains(menu)) {
-          document.body.removeChild(menu);
-        }
-        document.removeEventListener("click", removeMenu);
-      }
-    });
+  return blocks;
+}
+
+function makeResizeBlock() {
+  removeResizeBlock();
+  checkConnectedNotes().forEach((block) => {
+    let startBlock = block[0];
+    let endBlock = block[block.length - 1];
+    startBlock.classList.add("resize-start");
+    startBlock.style.setProperty('--bg-color', darkenRgb(startBlock.style.backgroundColor, 0.7));
+    endBlock.classList.add("resize-end");
+    endBlock.style.setProperty('--bg-color', darkenRgb(startBlock.style.backgroundColor, 0.7));
+  })
+}
+
+function removeResizeBlock() {
+  let resizeBlocks = document.querySelectorAll(".resize-start, .resize-end");
+  resizeBlocks.forEach((el) => {
+    el.classList.remove("resize-start", "resize-end");
   });
+}
+
+function darkenRgb(rgbString, factor = 0.8) {
+  // Extract rgb numbers from "rgb(r, g, b)"
+  const result = rgbString.match(/\d+/g);
+  if (!result || result.length < 3) return rgbString;
+
+  let [r, g, b] = result.map(Number);
+
+  // Darken each component
+  r = Math.floor(r * factor);
+  g = Math.floor(g * factor);
+  b = Math.floor(b * factor);
+
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+// initialize variables
+function initVariables() {
+  isDragging = false;
+  isResizing = false;
+  selectionStarted = false;
+  lastSelectedButton = null;
+  lastSelectedNote = 0;
+}
+
+// Function to toggle button state
+function toggleButton(button, forceState = null) {
+  const index = button.getAttribute("data-id");
+  let buttonRow = numPitch - 1 - Math.floor((index - 1) / numColumns);
+  let buttonColumn = (index - 1) % numColumns;
+
+  // If forceState is provided, use it; otherwise toggle current state
+  const shouldBeSelected =
+    forceState !== null ? forceState : !button.classList.contains("selected");
+
+  // console.log(shouldBeSelected, forceState);
+  if (shouldBeSelected) {
+    if (!button.hasAttribute("data-original-bg")) {
+      button.setAttribute(
+        "data-original-bg",
+        button.style.backgroundColor || ""
+      );
+    }
+
+    generateSequence(buttonColumn + 1, 32, numPitch * numColumns).forEach((id) => {
+      const btn = document.querySelector(`.grid-btn[data-id="${id}"]`);
+      btn.classList.remove("selected");
+      btn.classList.remove("connect");
+      btn.removeAttribute('style');
+    });
+
+    button.setAttribute("border", "none");
+    button.style.backgroundColor = noteColor[buttonRow];
+    button.classList.add("selected");
+
+    // Add note to noteGroup if not already present
+    if (!noteGroup[buttonColumn].includes(buttonRow)) {
+      // remove other notes in current line
+      noteGroup[buttonColumn] = [];
+
+      noteGroup[buttonColumn].push(buttonRow);
+      // Play sound only when adding notes
+      sound.instrumentTrack.playNote(
+        noteIndex[buttonRow],
+        undefined,
+        undefined,
+        0.8
+      );
+    }
+  } else {
+    const originalBg = button.getAttribute("data-original-bg");
+    button.style.backgroundColor = originalBg || "";
+    button.classList.remove("selected");
+    button.classList.remove("connect");
+
+    // Remove note from noteGroup
+    const noteIndex = noteGroup[buttonColumn].indexOf(buttonRow);
+    if (noteIndex > -1) {
+      noteGroup[buttonColumn].splice(noteIndex, 1);
+    }
+  }
+}
+
+function generateSequence(start, step, max) {
+  const result = [];
+  for (let i = start; i <= max; i += step) {
+    result.push(i);
+  }
+  return result;
 }
 
 // Add keyboard shortcuts
@@ -1230,7 +949,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const resetButton = document.getElementById("reset-button");
   if (resetButton) {
     resetButton.addEventListener("click", () => resetGrid());
-    addResetContextMenu();
+    // addResetContextMenu();
   }
 });
 
@@ -1244,126 +963,48 @@ document.addEventListener("mousemove", (e) => {
   if (
     targetButton &&
     targetButton !== lastSelectedButton &&
-    targetButton.getAttribute("data-id") <= 8 * numColumns
+    targetButton.getAttribute("data-id") <= numPitch * numColumns
   ) {
     if (!isResizing) {
       lastSelectedButton = targetButton;
       toggleButton(targetButton, initialButtonState);
-    } else if (
-      lastSelectedNote == 0 ||
-      lastSelectedNote ==
-        Math.floor(targetButton.getAttribute("data-id") / numColumns)
-    ) {
-      lastSelectedButton = targetButton;
-      lastSelectedNote = Math.floor(
-        targetButton.getAttribute("data-id") / numColumns
-      );
-      console.log(lastSelectedNote);
-      toggleButton(targetButton, initialButtonState);
-      targetButton.classList.add("connect");
-      // targetButton.style.borderLeft = "none";
-      targetButton.style.boxShadow = "none";
     } else {
-      initVariables();
-    }
-  }
-});
-
-// Add mouse event listeners to handle resizing
-// document.addEventListener("mousemove", (e) => {
-//   if (!isResizing || !selectionStarted) return;
-
-//   const buttons = document.elementsFromPoint(e.clientX, e.clientY);
-//   const targetButton = buttons.find((el) => el.classList.contains("grid-btn"));
-
-//   if (
-//     targetButton &&
-//     targetButton !== lastSelectedButton &&
-//     targetButton.getAttribute("data-id") <= 8 * numColumns &&
-//     lastSelectedNote == targetButton.getAttribute("data-id") / 8
-//   ) {
-
-//   }
-// });
-
-// change cursor on button boundry
-document.addEventListener("mousemove", (e) => {
-  const buttons = document.elementsFromPoint(e.clientX, e.clientY);
-  const targetButton = buttons.find((el) => el.classList.contains("grid-btn"));
-
-  if (targetButton) {
-    const rect = targetButton.getBoundingClientRect();
-    if (
-      e.clientX >= rect.right - rect.width / 5 ||
-      e.clientX <= rect.left + rect.width / 5
-    ) {
-      if (targetButton.classList.contains("selected")) {
-        document.body.style.cursor = "ew-resize";
+      if (
+        lastSelectedNote == 0 ||
+        lastSelectedNote == Math.floor( targetButton.getAttribute("data-id") / numColumns )
+      ) {
+        if (lastSelectedButton) {
+          if (targetButton.classList.contains("selected") && lastSelectedButton.classList.contains("selected")) {
+            toggleButton(lastSelectedButton, false);
+          }
+          if (!targetButton.classList.contains("selected") && lastSelectedButton.classList.contains("selected")) {
+            toggleButton(targetButton, true);
+          }
+        }
+        lastSelectedButton = targetButton;
+        lastSelectedNote = Math.floor( targetButton.getAttribute("data-id") / numColumns );
+        targetButton.style.boxShadow = "none";
+        
+      } else {
+        initVariables();
       }
-    } else {
-      document.body.style.cursor = "pointer";
     }
+    makeResizeBlock();
   }
 });
 
 document.addEventListener("mouseup", () => {
+  if (isDragging || isResizing || selectionStarted)
+    drawVex();
+
   initVariables();
   // Redraw the music notation
-  drawVex();
 });
 
-// initialize variables
-function initVariables() {
-  isDragging = false;
-  isResizing = false;
-  selectionStarted = false;
-  lastSelectedButton = null;
-  lastSelectedNote = 0;
-}
-
-// Function to toggle button state
-function toggleButton(button, forceState = null) {
-  const index = button.getAttribute("data-id");
-  let buttonRow = 7 - Math.floor(index / numColumns);
-  let buttonColumn = (index - 1) % numColumns;
-
-  // If forceState is provided, use it; otherwise toggle current state
-  const shouldBeSelected =
-    forceState !== null ? forceState : !button.classList.contains("selected");
-
-  // console.log(shouldBeSelected, forceState);
-  if (shouldBeSelected) {
-    if (!button.hasAttribute("data-original-bg")) {
-      button.setAttribute(
-        "data-original-bg",
-        button.style.backgroundColor || ""
-      );
-    }
-    button.setAttribute("border", "none");
-    button.style.backgroundColor = noteColor[buttonRow];
-    button.classList.add("selected");
-
-    // Add note to noteGroup if not already present
-    if (!noteGroup[buttonColumn].includes(buttonRow)) {
-      noteGroup[buttonColumn].push(buttonRow);
-      // Play sound only when adding notes
-      sound.instrumentTrack.playNote(
-        noteIndex[buttonRow],
-        undefined,
-        undefined,
-        0.8
-      );
-    }
-  } else {
-    const originalBg = button.getAttribute("data-original-bg");
-    button.style.backgroundColor = originalBg || "";
-    button.classList.remove("selected");
-    button.classList.remove("connect");
-
-    // Remove note from noteGroup
-    const noteIndex = noteGroup[buttonColumn].indexOf(buttonRow);
-    if (noteIndex > -1) {
-      noteGroup[buttonColumn].splice(noteIndex, 1);
-    }
-  }
-}
+let resizeTimer;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    drawVex();
+  }, 200); // Debounced to avoid flickering
+});

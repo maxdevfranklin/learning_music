@@ -5,7 +5,7 @@ export class TempoSlider extends EventEmitter {
     super();
 
     this.container = document.createElement("div");
-    this.container.id = "tempo-slider";
+    this.container.id = "tempo_slider";
     container.appendChild(this.container);
 
     this.sliderCover = document.createElement("div");
