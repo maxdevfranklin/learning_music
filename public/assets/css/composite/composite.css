@@ -642,6 +642,22 @@
   background-image: url(../../songmaker/images/icon-undo.svg);
 }
 
+#mic-button::before {
+  background-image: url(../../songmaker/images/icon-record.svg);
+}
+
+#settings-button::before {
+  background-image: url(../../songmaker/images/icon-settings.svg);
+}
+
+#undo-button::before {
+  background-image: url(../../songmaker/images/icon-undo.svg);
+}
+
+#save-button::before {
+  background-image: url(../../songmaker/images/icon-save.svg);
+}
+
 @media (max-width: 767px) {
   #percussion-toggle-button {
     top: 13px;

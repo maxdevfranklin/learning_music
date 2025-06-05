@@ -49,24 +49,58 @@ const noteColor  = [
   "#ea57b2",
   "#e33059",
 ];
+function noteUnit() {
+  const [beat, rithm] = currentTimeSignature.split('/');
+  if (rithm == 4) {
+    return beat * 2;
+  } else if (rithm == 8) {
+    return beat;
+  }
+};
 
 let noteGroup = [];
 for (let i = 0; i < numColumns; i++) {
   noteGroup.push([]);
 }
 
-function getDuration(length) {
+function findMinimalSum(target) {
+  // Sort the numbers in descending order
+  const sortedNumbers = [0.5, 1,2,3,4,6,8,12].sort((a, b) => b - a);
+  const result = [];
+  let remaining = target;
+
+  for (const num of sortedNumbers) {
+    while (remaining >= num) {
+      result.push(num);
+      remaining -= num;
+    }
+    if (remaining === 0) break;
+  }
+
+  return remaining === 0 ? result : [];
+}
+
+function getDurations(length) {
   const map = {
-    1   : { duration: "8",  dots: 0 },
-    1.5 : { duration: "8d", dots: 1 },
-    2   : { duration: "q",  dots: 0 },
-    3   : { duration: "qd", dots: 1 }, // dotted quarter
-    4   : { duration: "h",  dots: 0 },
-    6   : { duration: "hd", dots: 1 }, // dotted half
-    8   : { duration: "w",  dots: 0 },
-    12  : { duration: "wd", dots: 1 },
+    0.5 : { duration: "16", dots: 0, durationLength: 0.5 },
+    1   : { duration: "8",  dots: 0, durationLength: 1 },
+    2   : { duration: "q",  dots: 0, durationLength: 2 },
+    3   : { duration: "qd", dots: 1, durationLength: 3 }, // dotted quarter
+    4   : { duration: "h",  dots: 0, durationLength: 4 },
+    6   : { duration: "hd", dots: 1, durationLength: 6 }, // dotted half
+    8   : { duration: "w",  dots: 0, durationLength: 8 },
+    12  : { duration: "wd", dots: 1, durationLength: 12 },
   };
-  return map[length] || { duration: "8", dots: 0 }; // fallback
+  if (map.hasOwnProperty(length)) {
+    return [map[length]]
+  } else {
+    var durations = findMinimalSum(length);
+    if (durations.length > 0) {
+      return durations.map(d => map[d]);
+    } else {
+      return [];
+    }
+  }
 }
 
 const gridContainer = document.getElementById("noteGroup");
@@ -405,27 +439,42 @@ function collapseNotes(raw) {
     let length = 1;
 
     while (
-      (i + length) % 4 !== 0 &&
+      (i + length) % noteUnit() !== 0 &&
       JSON.stringify(raw[i + length]) === JSON.stringify(current)
     ) {
       length++;
     }
 
-    const { duration, dots } = getDuration(length * 2);
-    const isRest = current.length === 0;
-    const pitch = isRest ? "b/4" : notePair[current[0]];
-    const note = {
-      keys: [pitch],
-      duration: isRest ? duration + "r" : duration,
-      dots: dots,
-      length: length
-    };
-
-    result[i] = note;
+    const durations = getDurations(length);
+    if (durations.length) {
+      let j = i;
+      durations.forEach((d) => {
+        const { duration, dots, durationLength } = d;
+        const isRest = current.length === 0;
+        const pitch = isRest ? "b/4" : notePair[current[0]];
+        const note = {
+          keys: [pitch],
+          duration: isRest ? duration + "r" : duration,
+          dots: dots,
+          length: durationLength
+        };
+    
+        result[j] = note;
+        j += durationLength;
+      })      
+    }
     i += length;
   }
 
   return result;
+}
+
+function isVoiceComplete(voice) {
+  const expectedTicks = voice.getTotalTicks().value(); // what the voice expects
+  const actualTicks = voice.getTickables()
+    .reduce((sum, note) => sum + note.getTicks().value(), 0); // what the notes provide
+
+  return expectedTicks === actualTicks;
 }
 
 function drawVex(width = window.innerWidth) {
@@ -451,7 +500,7 @@ function drawVex(width = window.innerWidth) {
     const x = i === 0 ? 10 : noteWidth * i + 74;
     let stave1 = new VF.Stave(x, 20, noteWidth);
   
-    if (i < 31 && i % songOptions.beats !== songOptions.beats - 1) {
+    if (i < 31 && i % noteUnit() !== noteUnit() - 1) {
       stave1.setBegBarType(VF.Barline.type.NONE);
       stave1.setEndBarType(VF.Barline.type.NONE);
     }
@@ -467,24 +516,37 @@ function drawVex(width = window.innerWidth) {
     var notes = [];
 
     if (collapsedNotes[i].keys.length) {
-      notes.push(
-        new VF.StaveNote({
+      if (collapsedNotes[i].dots) {
+        const note = new VF.StaveNote({
           clef: "treble",
           keys: collapsedNotes[i].keys,
           duration: collapsedNotes[i].duration
-        })
-      );
+        });
+        VF.Dot.buildAndAttach([note], {all: true});
+        notes.push(note);
+      } else {
+        notes.push(
+          new VF.StaveNote({
+            clef: "treble",
+            keys: collapsedNotes[i].keys,
+            duration: collapsedNotes[i].duration
+          })
+        );
+      }
       var voice = new VF.Voice({
         num_beats: collapsedNotes[i].length,
-        beat_value: parseInt(currentTimeSignature.split("/")[1]),
+        beat_value: 8,
         strict: false,
       });
       voice.addTickables(notes);
 
-      var formatter = new VF.Formatter()
-        .joinVoices([voice])
-        .format([voice], 40);
-      voice.draw(context, stave1);
+      if (!isVoiceComplete(voice)) {
+        console.warn(`Incomplete voice at index ${i}: expected ${voice.getTotalTicks().value()}, got ${notes.map(n => n.getTicks().value()).join(", ")}`);
+        // optionally skip rendering or fix the durations
+      } else {
+        new VF.Formatter().joinVoices([voice]).format([voice], 40);
+        voice.draw(context, stave1);
+      }
     }
   }
 
@@ -494,7 +556,11 @@ function drawVex(width = window.innerWidth) {
 
   let vftimesignature = document.getElementsByClassName('vf-timesignature');
   if (vftimesignature.length) {
-    vftimesignature[0].innerHTML += `<path d="M18.5303 9.4697C18.8232 9.7626 18.8232 10.2374 18.5303 10.5303L12.5303 16.5303C12.2374 16.8232 11.7626 16.8232 11.4697 16.5303L5.4697 10.5303C5.1768 10.2374 5.1768 9.7626 5.4697 9.4697C5.7626 9.1768 6.2374 9.1768 6.5303 9.4697L12 14.9393L17.4697 9.4697C17.7626 9.1768 18.2374 9.1768 18.5303 9.4697Z" fill="#000000"/>`;
+    vftimesignature[0].outerHTML += 
+      `<g id="timesignature" style="stroke:#444; stroke-width:2;">
+        <rect x="53" y="50" width="30" height="65" fill="none" stroke="gray" stroke-dasharray="2"/>
+        <rect class="zoom-rect" x="53" y="50" width="30" height="65" fill="transparent" stroke="red"/>
+      </g>`;
   }
   invokeVFListener();
 }
@@ -502,9 +568,32 @@ function drawVex(width = window.innerWidth) {
 function invokeVFListener() {
   // Your code here
   // Time signature handling
-  const timeSignatureToggle = document.getElementsByClassName("vf-timesignature");
-  if (timeSignatureToggle.length){
-    timeSignatureToggle[0].addEventListener("click", (e) => {
+  const timeSignatureToggle = document.getElementById("timesignature");
+  if (timeSignatureToggle){
+    timeSignatureToggle.addEventListener("click", (e) => {
+      // createElementTooltipWithImageButtons({
+      //   target: timeSignatureToggle[0],
+      //   position: 'bottom',
+      //   offset: 10,
+      //   buttons: [
+      //     {
+      //       imageSrc: '/assets/songmaker/images/3-4.png',
+      //       alt: '3/4',
+      //       width: 80,
+      //       height: 100,
+      //       action: '3/4',
+      //       onClick: () => enableDarkTheme()
+      //     },
+      //     {
+      //       imageSrc: '/assets/songmaker/images/4-4.png',
+      //       alt: '4/4',
+      //       width: 80,
+      //       height: 100,
+      //       action: '4/4',
+      //       onClick: () => enableLightTheme()
+      //     }
+      //   ]
+      // });
       // Update beats in SongOptions
       if (currentTimeSignature === "4/4") {
         // set as 3/4
@@ -585,10 +674,10 @@ function updateUI() {
   }
 
   // Update time signature
-  if (timeSignatureSelect) {
-    timeSignatureSelect.value = currentTimeSignature;
-    songOptions.beats = currentTimeSignature === "4/4" ? 4 : 3;
-  }
+  // if (timeSignatureSelect) {
+  //   timeSignatureSelect.value = currentTimeSignature;
+  //   songOptions.beats = currentTimeSignature === "4/4" ? 4 : 3;
+  // }
 
   // Update grid buttons
   const allButtons = document.querySelectorAll(".grid-btn");
@@ -753,11 +842,11 @@ function performReset(options) {
 
   if (options.timeSignature) {
     // Reset time signature to 4/4
-    if (timeSignatureSelect) {
-      timeSignatureSelect.value = "4/4";
-      currentTimeSignature = "4/4";
-      songOptions.beats = 4;
-    }
+    // if (timeSignatureSelect) {
+    //   timeSignatureSelect.value = "4/4";
+    currentTimeSignature = "4/4";
+    songOptions.beats = 4;
+    // }
   }
 
   // Update the music notation
