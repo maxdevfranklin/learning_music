@@ -96,6 +96,7 @@
     </div>
 
     <div class="container">
+      <div id="cursor" class="cursor hide"></div>
       <div class="music-sheet">
         <div id="notation"></div>
         <!-- Time Signature Dropdown -->
@@ -111,7 +112,7 @@
       <!-- Add progress bar container -->
       
 
-      <div class="note-container">
+      <div class="note-container" id="note_area">
         <div class="note-group" id="noteGroup"></div>
       </div>
       <!-- Dynamic Markings UI -->
@@ -155,8 +156,6 @@
     <div id="bottom">
       <div id="bottom-left">
         <button id="play-button" class="">Play</button>
-        <button class="button instrument-marimba" id="instrument-toggle-button">Marimba</button>
-        <button class="button instrument-blocks" id="percussion-toggle-button">Blocks</button>
         <button id="meter-button" class="button">Tempo</button>
       </div>
       <div style="display: flex; align-items: center; gap: 12px; width: 100%; justify-content: center; margin-bottom: 8px; margin: 15px 0; flex-direction: column;">
@@ -171,11 +170,11 @@
       </div>
       <div id="bottom-right">
         <!-- <button id="midi-button" class="button">Midi</button> -->
-        <button id="mic-button" class="button visible">Mic</button>
+        <!-- <button id="mic-button" class="button visible">Mic</button> -->
         <button id="reset-button" class="button">Restart</button>
-        <button id="settings-button" class="button">Settings</button>
-        <button id="undo-button" class="button">Undo</button>
-        <button id="save-button" class="button">Save</button>
+        <!-- <button id="settings-button" class="button">Settings</button> -->
+        <!-- <button id="undo-button" class="button">Undo</button> -->
+        <!-- <button id="save-button" class="button">Save</button> -->
       </div>
     </div>
     <script src="http://unpkg.com/tone"></script>

@@ -4,8 +4,11 @@ import { bus } from "./data/EventBus.js";
 import { SongOptions } from "./data/SongOptions.js";
 import { MidiData } from "./midi/Data.js";
 import { History } from "./history/History.js";
+import { InstrumentToggle } from "./bottom/InstrumentToggle.js";
 
 import { Sound } from "./sound/Sound.js";
+
+import { GA } from "./functions/GA.js";
 
 const buffer = new ToneAudioBuffer();
 
@@ -18,7 +21,7 @@ let stopRequested = false;
 let currentPlaybackTimeout = null;
 let isResizing = false;
 let currentTimeSignature = "4/4";
-
+let songChanged = true;
 
 // Add history stacks for undo/redo
 const historyStack = [];
@@ -28,7 +31,7 @@ const MAX_HISTORY = 50;
 // Number of pitches (0-7 for Do to Si, plus 2 for rests)
 // if you want to change this value, you need to change the buttonNote, notePair, noteIndex, and noteColor arrays accordingly
 const numPitch   = 8;
-const numColumns = 32;
+var   numColumns = 32;
 const notePair   = ["c/4", "d/4", "e/4", "f/4", "g/4", "a/4", "b/4", "c/5", "d/5", "e/5", "f/5", "g/5", "a/5", "b/5", "c/6"];
 const buttonNote = ["Do", "Ti", "La", "Sol", "Fa", "Mi", "Re", "Do", "Ti", "La", "Sol", "Fa", "Mi", "Re", "Do"];
 const noteIndex  = [48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72];
@@ -62,6 +65,19 @@ let noteGroup = [];
 for (let i = 0; i < numColumns; i++) {
   noteGroup.push([]);
 }
+
+let percussionGroup = [];
+for (let i = 0; i < numColumns; i++) {
+  percussionGroup.push([]);
+}
+
+const cursor = document.getElementById("cursor");
+const notation = document.getElementById("notation");
+const noteArea = document.getElementById("note_area");
+const bottomLeft = document.getElementById("bottom-left");
+
+let collapsedNotes = [];
+let moreCollapsedNotes = [];
 
 function findMinimalSum(target) {
   // Sort the numbers in descending order
@@ -103,9 +119,28 @@ function getDurations(length) {
   }
 }
 
-const gridContainer = document.getElementById("noteGroup");
+function getToneDurations(duration) {
+  switch(duration) {
+    case "16":
+      return 0.25;
+    case "8":
+      return 0.5;
+    case "q":
+      return 1;
+    case "qd":
+      return 1.5;
+    case "h":
+      return 2;
+    case "hd":
+      return 3;
+    case "w":
+      return 4;
+    case "wd":
+      return 6;
+  }
+}
 
-gridContainer.style.gridTemplateColumns = `repeat(${numColumns}, 1fr)`;
+const gridContainer = document.getElementById("noteGroup");
 
 // Add drag selection variables
 let isDragging = false;
@@ -114,84 +149,92 @@ let lastSelectedNote = 0;
 let selectionStarted = false;
 let initialButtonState = false; // true if first button was selected, false if unselected
 
-for (let i = 1; i <= (numPitch + 2) * numColumns; i++) {
-  const button = document.createElement("button");
-  button.classList.add("grid-btn");
-  button.setAttribute("data-id", i);
-  let indexColumn = i % numColumns;
-  let indexRow = Math.floor(i / numColumns);
-  if (i <= numPitch * numColumns) {
-    button.classList.add("evenBtn");
-    if ((indexColumn - 1) % 2 && indexColumn != 0) {
-      button.classList.add("mainDivider");
-    }
-
-    // Remove the old mousedown event listener and add new drag functionality
-    button.addEventListener("mousedown", (e) => {
-      e.preventDefault(); // Prevent text selection while dragging
-      isDragging = true;
-      selectionStarted = true;
-      lastSelectedButton = button;
-
-      // Store initial state - if the button was selected or not
-      initialButtonState = !button.classList.contains("selected");
-
-      // Toggle the first button
-      // add condition to toggle
-      const buttons = document.elementsFromPoint(e.clientX, e.clientY);
-      const targetButton = buttons.find((el) =>
-        el.classList.contains("grid-btn")
-      );
-      if (targetButton && targetButton.classList.contains("selected")) {
-        const rect = targetButton.getBoundingClientRect();
-        if (
-          e.clientX >= rect.right - rect.width / 5 ||
-          e.clientX <= rect.left + rect.width / 5
-        ) {
-          isResizing = true;
-          selectionStarted = true;
-          initialButtonState = true;
+function layoutGridContainer() {
+  gridContainer.innerHTML = "";
+  gridContainer.style.gridTemplateColumns = `repeat(${numColumns}, 1fr)`;
+  
+  
+  for (let i = 1; i <= (numPitch + 2) * numColumns; i++) {
+    const button = document.createElement("button");
+    button.classList.add("grid-btn");
+    button.setAttribute("data-id", i);
+    let indexColumn = i % numColumns;
+    let indexRow = Math.floor(i / numColumns);
+    if (i <= numPitch * numColumns) {
+      button.classList.add("evenBtn");
+      if ((indexColumn - 1) % 2 && indexColumn != 0) {
+        button.classList.add("mainDivider");
+      }
+  
+      // Remove the old mousedown event listener and add new drag functionality
+      button.addEventListener("mousedown", (e) => {
+        e.preventDefault(); // Prevent text selection while dragging
+        isDragging = true;
+        selectionStarted = true;
+        lastSelectedButton = button;
+  
+        // Store initial state - if the button was selected or not
+        initialButtonState = !button.classList.contains("selected");
+  
+        // Toggle the first button
+        // add condition to toggle
+        const buttons = document.elementsFromPoint(e.clientX, e.clientY);
+        const targetButton = buttons.find((el) =>
+          el.classList.contains("grid-btn")
+        );
+        if (targetButton && targetButton.classList.contains("selected")) {
+          const rect = targetButton.getBoundingClientRect();
+          if (
+            e.clientX >= rect.right - rect.width / 5 ||
+            e.clientX <= rect.left + rect.width / 5
+          ) {
+            isResizing = true;
+            selectionStarted = true;
+            initialButtonState = true;
+          } else {
+            toggleButton(button, initialButtonState);
+          }
         } else {
           toggleButton(button, initialButtonState);
         }
-      } else {
-        toggleButton(button, initialButtonState);
+        makeResizeBlock();
+      });
+  
+      gridContainer.appendChild(button);
+  
+      //Give note to first button
+      if (i % numColumns == 1) {
+        const noteLabel = document.createElement("div");
+        noteLabel.style.marginRight = "5px";
+        noteLabel.style.display = "inline-block";
+        noteLabel.style.verticalAlign = "center";
+        noteLabel.textContent = buttonNote[indexRow];
       }
-      makeResizeBlock();
-    });
-
-    gridContainer.appendChild(button);
-
-    //Give note to first button
-    if (i % numColumns == 1) {
-      const noteLabel = document.createElement("div");
-      noteLabel.style.marginRight = "5px";
-      noteLabel.style.display = "inline-block";
-      noteLabel.style.verticalAlign = "center";
-      noteLabel.textContent = buttonNote[indexRow];
+      // if (i > (numPitch - 1) * numColumns) button.style.marginBottom = "30px";
+    } else {
+      button.style.width            = "50%";
+      button.style.aspectRatio      = "1";
+      button.style.margin           = "auto";
+      button.style.backgroundColor  = "#ccc";
+  
+      let index = button.getAttribute("data-id");
+      let buttonRow = Math.floor(index / numColumns);
+      if (buttonRow == numPitch) button.style.borderRadius = "20%";
+      else                button.style.borderRadius = "50%";
+      button.addEventListener("click", () => {
+        button.classList.toggle("selected");
+        if (button.classList.contains("selected")) {
+          button.style.backgroundColor  = "#16a8f0";
+        } else {
+          button.style.backgroundColor  = "#ccc";
+        }
+        togglePercussion(button);
+      });
+      gridContainer.appendChild(button);
     }
-    // if (i > (numPitch - 1) * numColumns) button.style.marginBottom = "30px";
-  } else {
-    button.style.width            = "50%";
-    button.style.aspectRatio      = "1";
-    button.style.margin           = "auto";
-    button.style.backgroundColor  = "#ccc";
-
-    let index = button.getAttribute("data-id");
-    let buttonRow = Math.floor(index / numColumns);
-    if (buttonRow == numPitch) button.style.borderRadius = "20%";
-    else                button.style.borderRadius = "50%";
-    button.addEventListener("click", () => {
-      button.classList.toggle("selected");
-      if (button.classList.contains("selected")) {
-        button.style.backgroundColor  = "#16a8f0";
-      } else {
-        button.style.backgroundColor  = "#ccc";
-      }
-    });
-    gridContainer.appendChild(button);
   }
 }
+layoutGridContainer();
 
 // Italian tempo terms mapping
 const tempoTerms = [
@@ -269,6 +312,8 @@ function togglePlayback() {
 }
 
 function stopPlayback() {
+  cursor.classList.add('hide');
+
   const playButton = document.getElementById("play-button");
   stopRequested = true;
   isPlaying = false;
@@ -306,6 +351,7 @@ function startPlayback() {
   stopRequested = false;
 
   // Start playing from the beginning
+  cursor.classList.remove('hide');
   playMusic(0);
 }
 
@@ -343,60 +389,76 @@ async function playMusic(startIndex = 0) {
       return;
     }
 
+    const left = allButtons[i].getClientRects()[0].x;
+    const width = allButtons[i].getClientRects()[0].width;
+    const height = noteArea.getClientRects()[0].bottom - notation.getClientRects()[0].top;
+    cursor.style.left = left + 'px';
+    cursor.style.width = width + 'px';
+    cursor.style.height = height + 'px';
+
     // Update progress bar with smoother animation
-    const progress = (i / numColumns) * 100;
-    progressBar.style.width = `${progress}%`;
+    // const progress = (i / numColumns) * 100;
+    // progressBar.style.width = `${progress}%`;
 
-    // Get current and next column buttons
-    const currentColumnButtons = Array.from(allButtons).filter((btn) => {
-      const btnIndex = parseInt(btn.getAttribute("data-id"));
-      return (btnIndex - 1) % numColumns === i;
-    });
+    // // Get current and next column buttons
+    // const currentColumnButtons = Array.from(allButtons).filter((btn) => {
+    //   const btnIndex = parseInt(btn.getAttribute("data-id"));
+    //   return (btnIndex - 1) % numColumns === i;
+    // });
 
-    const nextColumnButtons = Array.from(allButtons).filter((btn) => {
-      const btnIndex = parseInt(btn.getAttribute("data-id"));
-      return (btnIndex - 1) % numColumns === (i + 1) % numColumns;
-    });
+    // const nextColumnButtons = Array.from(allButtons).filter((btn) => {
+    //   const btnIndex = parseInt(btn.getAttribute("data-id"));
+    //   return (btnIndex - 1) % numColumns === (i + 1) % numColumns;
+    // });
 
-    // Remove previous highlights with smooth transition
-    allButtons.forEach((btn) => {
-      btn.classList.remove("playing-column");
-      btn.classList.remove("next-column");
-      btn.style.transition = "all 0.3s ease";
-    });
+    // // Remove previous highlights with smooth transition
+    // allButtons.forEach((btn) => {
+    //   btn.classList.remove("playing-column");
+    //   btn.classList.remove("next-column");
+    //   btn.style.transition = "all 0.3s ease";
+    // });
 
-    // Add new highlights with enhanced effects
-    currentColumnButtons.forEach((btn) => {
-      btn.classList.add("playing-column");
-      if (btn.classList.contains("selected")) {
-        btn.classList.add("playing-column-selected");
-      }
-    });
+    // // Add new highlights with enhanced effects
+    // currentColumnButtons.forEach((btn) => {
+    //   btn.classList.add("playing-column");
+    //   if (btn.classList.contains("selected")) {
+    //     btn.classList.add("playing-column-selected");
+    //   }
+    // });
 
-    nextColumnButtons.forEach((btn) => {
-      btn.classList.add("next-column");
-    });
+    // nextColumnButtons.forEach((btn) => {
+    //   btn.classList.add("next-column");
+    // });
 
     // Play notes with visual feedback
-    if (noteGroup[i].length > 0) {
-      noteGroup[i].forEach((note) => {
-        const noteButton = currentColumnButtons[numPitch - 1 - note];
-        if (noteButton) {
-          // Add ripple effect when note plays
-          const ripple = document.createElement("div");
-          ripple.className = "ripple";
-          noteButton.appendChild(ripple);
-          setTimeout(() => ripple.remove(), 1000);
-        }
-        sound.instrumentTrack.playNote(
-          noteIndex[note],
-          undefined,
-          undefined,
-          0.8
-        );
-      });
+    if (moreCollapsedNotes[i].keys.length > 0 && moreCollapsedNotes[i].note >= 0 && !moreCollapsedNotes[i].rest) {
+      // moreCollapsedNotes[i].forEach((note) => {
+      //   const noteButton = currentColumnButtons[numPitch - 1 - note];
+      //   if (noteButton) {
+      //     // Add ripple effect when note plays
+      //     const ripple = document.createElement("div");
+      //     ripple.className = "ripple";
+      //     noteButton.appendChild(ripple);
+      //     setTimeout(() => ripple.remove(), 1000);
+      //   }
+      sound.instrumentTrack.playNote(
+        noteIndex[moreCollapsedNotes[i].note],
+        moreCollapsedNotes[i].length / 2.0,
+        undefined,
+        1
+      );
+
+      // });
     }
 
+    percussionGroup[i].forEach((p) => {
+      sound.percussionTrack.playNote(
+        p,
+        undefined,
+        undefined,
+        0.8
+      )
+    })
     await delay(60000 / songOptions.tempo);
   }
 
@@ -445,24 +507,58 @@ function collapseNotes(raw) {
       length++;
     }
 
+    const isRest = current.length === 0;
     const durations = getDurations(length);
     if (durations.length) {
       let j = i;
       durations.forEach((d) => {
         const { duration, dots, durationLength } = d;
-        const isRest = current.length === 0;
         const pitch = isRest ? "b/4" : notePair[current[0]];
         const note = {
           keys: [pitch],
           duration: isRest ? duration + "r" : duration,
           dots: dots,
-          length: durationLength
+          length: durationLength,
+          note: raw[i]?.[0]??-1,
+          rest: isRest
         };
     
         result[j] = note;
         j += durationLength;
-      })      
+      })
     }
+    i += length;
+  }
+
+  return result;
+}
+
+function moreCollapseNotes(raw) {
+  
+  let result = [];
+  for (let i = 0; i < raw.length; i++) {
+    result.push([]);
+  }  
+  let i = 0;
+
+  while (i < raw.length) {
+    const current = raw[i];
+    let length = 1;
+
+    while (
+      JSON.stringify(raw[i + length]) === JSON.stringify(current)
+    ) {
+      length++;
+    }
+
+    const isRest = current.length === 0;
+    result[i] = {
+      keys: [isRest === 0 ? "b/4" : notePair[current[0]]],
+      dots: 0,
+      length: length,
+      note: raw[i]?.[0]??-1,
+      rest: isRest
+    };
     i += length;
   }
 
@@ -494,13 +590,17 @@ function drawVex(width = window.innerWidth) {
   let stave = new VF.Stave(10, 20, sheetLength - 20);
   stave.setContext(context).draw();
   
-  var collapsedNotes = collapseNotes(noteGroup);
+  collapsedNotes = collapseNotes(noteGroup);
+  moreCollapsedNotes = moreCollapseNotes(noteGroup);
 
-  for (let i = 0; i < 32; i++) {
+  var firstNoteForTie = null;
+  var secondNoteForTie = null;
+  var prevNote = null;
+  for (let i = 0; i < numColumns; i++) {
     const x = i === 0 ? 10 : noteWidth * i + 74;
     let stave1 = new VF.Stave(x, 20, noteWidth);
   
-    if (i < 31 && i % noteUnit() !== noteUnit() - 1) {
+    if (i < numColumns - 1 && i % noteUnit() !== noteUnit() - 1) {
       stave1.setBegBarType(VF.Barline.type.NONE);
       stave1.setEndBarType(VF.Barline.type.NONE);
     }
@@ -516,8 +616,9 @@ function drawVex(width = window.innerWidth) {
     var notes = [];
 
     if (collapsedNotes[i].keys.length) {
+      var note = null;
       if (collapsedNotes[i].dots) {
-        const note = new VF.StaveNote({
+        note = new VF.StaveNote({
           clef: "treble",
           keys: collapsedNotes[i].keys,
           duration: collapsedNotes[i].duration
@@ -525,13 +626,12 @@ function drawVex(width = window.innerWidth) {
         VF.Dot.buildAndAttach([note], {all: true});
         notes.push(note);
       } else {
-        notes.push(
-          new VF.StaveNote({
-            clef: "treble",
-            keys: collapsedNotes[i].keys,
-            duration: collapsedNotes[i].duration
-          })
-        );
+        note = new VF.StaveNote({
+          clef: "treble",
+          keys: collapsedNotes[i].keys,
+          duration: collapsedNotes[i].duration
+        })
+        notes.push(note);
       }
       var voice = new VF.Voice({
         num_beats: collapsedNotes[i].length,
@@ -547,7 +647,34 @@ function drawVex(width = window.innerWidth) {
         new VF.Formatter().joinVoices([voice]).format([voice], 40);
         voice.draw(context, stave1);
       }
+
+      // draw the note tie
+      if (note && !firstNoteForTie && !collapsedNotes[i]?.rest) {
+        firstNoteForTie = note;
+      }
+
+      if (collapsedNotes[i]?.keys[0] === prevNote?.keys[0] && !collapsedNotes[i]?.rest && !prevNote?.rest) {
+        secondNoteForTie = note;
+      } else {
+        if (secondNoteForTie && firstNoteForTie) {
+          drawTie(firstNoteForTie, secondNoteForTie, context);
+
+          firstNoteForTie = null;
+          secondNoteForTie = null;
+        } else {
+          if (!collapsedNotes[i]?.rest) {
+            firstNoteForTie = note;
+          } else {
+            firstNoteForTie = null;
+          }
+        }
+      }
+      prevNote = collapsedNotes[i];
     }
+  }
+
+  if (firstNoteForTie && secondNoteForTie) {
+    drawTie(firstNoteForTie, secondNoteForTie, context);
   }
 
   // add 60px for padding right
@@ -563,6 +690,31 @@ function drawVex(width = window.innerWidth) {
       </g>`;
   }
   invokeVFListener();
+}
+
+function drawTie(firstNote, secondNote, context) {
+  if (firstNote && secondNote && context) {
+    // if (!firstNote.glyphProps.rest) {
+      const tie = new Vex.Flow.StaveTie({
+        first_note: firstNote,    // First note to tie
+        last_note: secondNote,     // Second note to tie
+        first_indices: [0],          // Which note heads to tie (for chords)
+        last_indices: [0],           // Which note heads to tie (for chords)
+      });
+      
+      tie.render_options = {
+        ...tie.render_options,
+        y_shift: 40,        // Vertical offset (negative moves up)
+        height: 20           // Curve height
+      };
+
+      // Set the tie direction (1 = up, -1 = down)
+      tie.setDirection(-1);
+      
+      // Draw the tie
+      tie.setContext(context).draw();
+    // }
+  }
 }
 
 function invokeVFListener() {
@@ -597,14 +749,26 @@ function invokeVFListener() {
       // Update beats in SongOptions
       if (currentTimeSignature === "4/4") {
         // set as 3/4
-        songOptions.beats = 3;
-        currentTimeSignature = "3/4";
+        resetGrid(() => {
+          songOptions.beats = 3;
+          currentTimeSignature = "3/4";
+          numColumns = 30;
+  
+          layoutGridContainer();
+          drawVex();
+        })
       } else if (currentTimeSignature === "3/4") {
         // set as 4/4
-        songOptions.beats = 4;
-        currentTimeSignature = "4/4";
+        resetGrid(() => {
+          songOptions.beats = 4;
+          currentTimeSignature = "4/4";
+          numColumns = 32;
+          
+          layoutGridContainer();
+          drawVex();
+        })
+        
       }
-      drawVex();
     });
   } else {
     console.log('no time signature');
@@ -697,12 +861,13 @@ function updateUI() {
 
 // Restore resetGrid function
 function resetGrid(
+  callback = undefined,
   options = {
     notes: true,
     tempo: true,
     timeSignature: true,
     dynamics: true,
-  }
+  },
 ) {
   // Save current state before reset
   saveState();
@@ -739,6 +904,7 @@ function resetGrid(
       }).then((confirmed) => {
         if (!confirmed) return;
         performReset(options);
+        callback?.();
       });
     }
   }
@@ -779,7 +945,6 @@ function performReset(options) {
   // Reset based on options
   if (options.notes) {
     // Add ripple effect to the entire grid
-    const gridContainer = document.getElementById("noteGroup");
     gridContainer.style.position = "relative";
     const ripple = document.createElement("div");
     ripple.className = "grid-ripple";
@@ -840,14 +1005,14 @@ function performReset(options) {
     }
   }
 
-  if (options.timeSignature) {
-    // Reset time signature to 4/4
-    // if (timeSignatureSelect) {
-    //   timeSignatureSelect.value = "4/4";
-    currentTimeSignature = "4/4";
-    songOptions.beats = 4;
-    // }
-  }
+  // if (options.timeSignature) {
+  //   // Reset time signature to 4/4
+  //   // if (timeSignatureSelect) {
+  //   //   timeSignatureSelect.value = "4/4";
+  //   currentTimeSignature = "4/4";
+  //   songOptions.beats = 4;
+  //   // }
+  // }
 
   // Update the music notation
   drawVex();
@@ -871,6 +1036,73 @@ function performReset(options) {
   }, 800);
 }
 
+var instrumentTonalButton = new InstrumentToggle(bottomLeft, [
+  {
+    name: "Marimba",
+    audioPath: "marimba",
+  },
+  {
+    name: "Piano",
+    audioPath: "piano",
+  },
+  {
+    name: "Strings",
+    audioPath: "strings",
+  },
+  {
+    name: "Woodwind",
+    audioPath: "woodwind",
+  },
+  {
+    name: "Synth",
+    audioPath: "synth",
+  },
+]);
+instrumentTonalButton.container.id = "instrument-toggle-button";
+instrumentTonalButton.on("change", (name) => {
+  songOptions.instrument = name;
+  songOptions.changeInstrument();
+  // songChanged = true;
+  //   Vs.instrument.timeline._length + Vs.percussion.timeline._length < 1
+  //     ? oc.disableSaveButton(!0)
+  //     : oc.disableSaveButton(!1);
+  songChanged = true;
+  GA.track({
+    eventCategory: "bottom",
+    eventLabel: "instrument:tonal:" + name,
+  });
+});
+
+var percussionButton = new InstrumentToggle(bottomLeft, [
+  {
+    name: "Electronic",
+    audioPath: "electronic",
+  },
+  {
+    name: "Blocks",
+    audioPath: "woodblock",
+  },
+  {
+    name: "Kit",
+    audioPath: "kit",
+  },
+  {
+    name: "Conga",
+    audioPath: "bongo",
+  },
+]);
+
+percussionButton.container.id = "percussion-toggle-button";
+percussionButton.on("change", (name) => {
+  // this.emit("percussion-change", name);
+  songOptions.percussion = name;
+  songOptions.changeInstrument();
+  songChanged = true;
+  GA.track({
+    eventCategory: "bottom",
+    eventLabel: "instrument:percussion:" + name,
+  });
+});
 
 function checkConnectedNotes() {
   let elements = Array.from(document.querySelectorAll('.selected.grid-btn'));
@@ -883,14 +1115,16 @@ function checkConnectedNotes() {
 
   for (let i = 0; i < sorted.length; i++) {
     let currentId = Number(sorted[i].dataset.id);
-    let prevId = i > 0 ? Number(sorted[i - 1].dataset.id) : null;
-    if (prevId % 32 == 0) prevId = null; // if prev element is in the end of line, set null
-
-    if (i === 0 || currentId === prevId + 1) {
-      currentBlock.push(sorted[i]);
-    } else {
-      blocks.push(currentBlock);
-      currentBlock = [sorted[i]];
+    if (currentId < numPitch * numColumns) {
+      let prevId = i > 0 ? Number(sorted[i - 1].dataset.id) : null;
+      if (prevId % numColumns == 0) prevId = null; // if prev element is in the end of line, set null
+  
+      if (i === 0 || currentId === prevId + 1) {
+        currentBlock.push(sorted[i]);
+      } else {
+        blocks.push(currentBlock);
+        currentBlock = [sorted[i]];
+      }
     }
   }
   if (currentBlock.length) {
@@ -943,6 +1177,25 @@ function initVariables() {
   lastSelectedNote = 0;
 }
 
+function togglePercussion(button) {
+  const index = button.getAttribute("data-id");
+  let buttonRow = numPitch + 1 - Math.floor((index - 1) / numColumns);
+  let buttonColumn = (index - 1) % numColumns;
+
+  if (!percussionGroup[buttonColumn]?.includes(buttonRow)) {
+    percussionGroup[buttonColumn].push(buttonRow);
+      
+    sound.percussionTrack.playNote(
+      buttonRow,
+      undefined,
+      undefined,
+      0.8
+    )
+  } else {
+    percussionGroup[buttonColumn].pop(buttonRow);
+  }
+}
+
 // Function to toggle button state
 function toggleButton(button, forceState = null) {
   const index = button.getAttribute("data-id");
@@ -953,7 +1206,6 @@ function toggleButton(button, forceState = null) {
   const shouldBeSelected =
     forceState !== null ? forceState : !button.classList.contains("selected");
 
-  // console.log(shouldBeSelected, forceState);
   if (shouldBeSelected) {
     if (!button.hasAttribute("data-original-bg")) {
       button.setAttribute(
@@ -962,7 +1214,7 @@ function toggleButton(button, forceState = null) {
       );
     }
 
-    generateSequence(buttonColumn + 1, 32, numPitch * numColumns).forEach((id) => {
+    generateSequence(buttonColumn + 1, numColumns, numPitch * numColumns).forEach((id) => {
       const btn = document.querySelector(`.grid-btn[data-id="${id}"]`);
       btn.classList.remove("selected");
       btn.classList.remove("connect");

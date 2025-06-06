@@ -696,3 +696,21 @@ input {
     opacity: 0.1;
   }
 }
+
+.cursor {
+  display: block;
+  position: absolute;
+  top: 0px;
+  width: 40px;
+  border: 2px solid deepskyblue;
+  height: 565px;
+  z-index: 100;
+  border-style: dashed;
+  transition: transform 0.3s ease-in-out;
+  /* or for all animatable properties: */
+  transition: all 0.3s ease;
+}
+
+.hide {
+  display: none;
+}

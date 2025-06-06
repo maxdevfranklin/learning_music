@@ -105,6 +105,7 @@ export class SoundTrack {
     //console.log(note, time, this.part)
     this.instrument.keyDown(note, time, velocity);
     this.instrument.keyUp(note, time + duration);
+    console.log(time, duration);
   }
 
   setHotMic(hotMic) {
