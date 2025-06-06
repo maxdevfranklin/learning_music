@@ -910,6 +910,7 @@ function resetGrid(
   }
 
   performReset(options);
+  callback?.();
 }
 
 function performReset(options) {
