@@ -89,6 +89,15 @@ export class Sound extends EventEmitter {
     return this.instrumentTrack.mute;
   }
 
+  set volume(v) {
+    this.instrumentTrack.volume = v;
+    this.percussionTrack.volume = v;
+  }
+
+  get volume() {
+    return this.instrumentTrack.volume > this.percussionTrack.volume ? this.instrumentTrack.volume : this.percussionTrack.volume;
+  }
+
   get position() {
     //return the normalized position of the transport
     if (Transport.state === "started") {
@@ -197,5 +206,13 @@ export class Sound extends EventEmitter {
       this.percussionTrack.instrument.reset();
       this.instrumentTrack.instrument.reset();
     });
+  }
+
+  setVolume(volumeInDb) {
+    this.masterVolume.volume.value = volumeInDb;
+  }
+  
+  fadeVolume(targetDb, duration = 1) {
+    this.masterVolume.volume.rampTo(targetDb, duration);
   }
 }

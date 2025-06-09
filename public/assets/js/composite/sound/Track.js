@@ -87,6 +87,14 @@ export class SoundTrack {
     return this.instrument.mute;
   }
 
+  set volume(v) {
+    this.instrument.volume = v;    
+  }
+
+  get volume() {
+    return this.instrument.volume;
+  }
+
   clear() {
     this.part.clear();
   }

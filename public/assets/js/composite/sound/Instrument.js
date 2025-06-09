@@ -107,4 +107,12 @@ export class Instrument {
   get mute() {
     return this.sampler.volume.value < this.defaultVolume;
   }
+
+  set volume(v) {
+    this.sampler.volume.value = v??this.defaultVolume;
+  }
+
+  get volume() {
+    return this.sampler.volume.value;
+  }
 }

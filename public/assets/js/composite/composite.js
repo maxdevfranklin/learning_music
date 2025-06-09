@@ -53,12 +53,7 @@ const noteColor  = [
   "#e33059",
 ];
 function noteUnit() {
-  const [beat, rithm] = currentTimeSignature.split('/');
-  if (rithm == 4) {
-    return beat * 2;
-  } else if (rithm == 8) {
-    return beat;
-  }
+  return songOptions.beats * songOptions.subdivision;
 };
 
 let noteGroup = [];
@@ -71,6 +66,25 @@ for (let i = 0; i < numColumns; i++) {
   percussionGroup.push([]);
 }
 
+let dynamics = [];
+
+function getVolume(dynamic) {
+  switch(dynamic) {
+    case "ff":
+      return 0;
+    case "f":
+      return -5;
+    case "mf":
+      return -10;
+    case "mp":
+      return -15;
+    case "p":
+      return -20;
+    case "pp":
+      return -25;
+  }
+}
+
 const cursor = document.getElementById("cursor");
 const notation = document.getElementById("notation");
 const noteArea = document.getElementById("note_area");
@@ -81,7 +95,7 @@ let moreCollapsedNotes = [];
 
 function findMinimalSum(target) {
   // Sort the numbers in descending order
-  const sortedNumbers = [0.5, 1,2,3,4,6,8,12].sort((a, b) => b - a);
+  const sortedNumbers = [0.5,1,2,3,4,6,8,12].sort((a, b) => b - a);
   const result = [];
   let remaining = target;
 
@@ -140,7 +154,7 @@ function getToneDurations(duration) {
   }
 }
 
-const gridContainer = document.getElementById("noteGroup");
+const gridContainer = document.getElementById("note_group");
 
 // Add drag selection variables
 let isDragging = false;
@@ -158,11 +172,15 @@ function layoutGridContainer() {
     const button = document.createElement("button");
     button.classList.add("grid-btn");
     button.setAttribute("data-id", i);
-    let indexColumn = i % numColumns;
+    let indexColumn = (i - 1) % numColumns;
     let indexRow = Math.floor(i / numColumns);
     if (i <= numPitch * numColumns) {
-      button.classList.add("evenBtn");
-      if ((indexColumn - 1) % 2 && indexColumn != 0) {
+      if (Math.floor(indexColumn / (songOptions.beats * songOptions.subdivision)) % 2) {
+        button.classList.add("oddBtn");
+      } else {
+        button.classList.add("evenBtn");
+      }
+      if (indexColumn % 2 && indexColumn != 0) {
         button.classList.add("mainDivider");
       }
   
@@ -218,7 +236,7 @@ function layoutGridContainer() {
       button.style.backgroundColor  = "#ccc";
   
       let index = button.getAttribute("data-id");
-      let buttonRow = Math.floor(index / numColumns);
+      let buttonRow = Math.floor((index - 1) / numColumns);
       if (buttonRow == numPitch) button.style.borderRadius = "20%";
       else                button.style.borderRadius = "50%";
       button.addEventListener("click", () => {
@@ -233,9 +251,15 @@ function layoutGridContainer() {
       gridContainer.appendChild(button);
     }
   }
+  makeDynamics();
 }
 layoutGridContainer();
 
+function layoutDynamicsContainer() {
+  addDynamicsListener();
+}
+
+layoutDynamicsContainer();
 // Italian tempo terms mapping
 const tempoTerms = [
   { min: 20,  max: 40,  term: "Grave" },
@@ -396,59 +420,16 @@ async function playMusic(startIndex = 0) {
     cursor.style.width = width + 'px';
     cursor.style.height = height + 'px';
 
-    // Update progress bar with smoother animation
-    // const progress = (i / numColumns) * 100;
-    // progressBar.style.width = `${progress}%`;
-
-    // // Get current and next column buttons
-    // const currentColumnButtons = Array.from(allButtons).filter((btn) => {
-    //   const btnIndex = parseInt(btn.getAttribute("data-id"));
-    //   return (btnIndex - 1) % numColumns === i;
-    // });
-
-    // const nextColumnButtons = Array.from(allButtons).filter((btn) => {
-    //   const btnIndex = parseInt(btn.getAttribute("data-id"));
-    //   return (btnIndex - 1) % numColumns === (i + 1) % numColumns;
-    // });
-
-    // // Remove previous highlights with smooth transition
-    // allButtons.forEach((btn) => {
-    //   btn.classList.remove("playing-column");
-    //   btn.classList.remove("next-column");
-    //   btn.style.transition = "all 0.3s ease";
-    // });
-
-    // // Add new highlights with enhanced effects
-    // currentColumnButtons.forEach((btn) => {
-    //   btn.classList.add("playing-column");
-    //   if (btn.classList.contains("selected")) {
-    //     btn.classList.add("playing-column-selected");
-    //   }
-    // });
-
-    // nextColumnButtons.forEach((btn) => {
-    //   btn.classList.add("next-column");
-    // });
+    sound.volume = getVolume(dynamics[Math.floor(i / noteUnit())]);
 
     // Play notes with visual feedback
     if (moreCollapsedNotes[i].keys.length > 0 && moreCollapsedNotes[i].note >= 0 && !moreCollapsedNotes[i].rest) {
-      // moreCollapsedNotes[i].forEach((note) => {
-      //   const noteButton = currentColumnButtons[numPitch - 1 - note];
-      //   if (noteButton) {
-      //     // Add ripple effect when note plays
-      //     const ripple = document.createElement("div");
-      //     ripple.className = "ripple";
-      //     noteButton.appendChild(ripple);
-      //     setTimeout(() => ripple.remove(), 1000);
-      //   }
       sound.instrumentTrack.playNote(
         noteIndex[moreCollapsedNotes[i].note],
         moreCollapsedNotes[i].length / 2.0,
         undefined,
         1
       );
-
-      // });
     }
 
     percussionGroup[i].forEach((p) => {
@@ -689,7 +670,7 @@ function drawVex(width = window.innerWidth) {
         <rect class="zoom-rect" x="53" y="50" width="30" height="65" fill="transparent" stroke="red"/>
       </g>`;
   }
-  invokeVFListener();
+  addVFListener();
 }
 
 function drawTie(firstNote, secondNote, context) {
@@ -717,35 +698,12 @@ function drawTie(firstNote, secondNote, context) {
   }
 }
 
-function invokeVFListener() {
+function addVFListener() {
   // Your code here
   // Time signature handling
   const timeSignatureToggle = document.getElementById("timesignature");
   if (timeSignatureToggle){
     timeSignatureToggle.addEventListener("click", (e) => {
-      // createElementTooltipWithImageButtons({
-      //   target: timeSignatureToggle[0],
-      //   position: 'bottom',
-      //   offset: 10,
-      //   buttons: [
-      //     {
-      //       imageSrc: '/assets/songmaker/images/3-4.png',
-      //       alt: '3/4',
-      //       width: 80,
-      //       height: 100,
-      //       action: '3/4',
-      //       onClick: () => enableDarkTheme()
-      //     },
-      //     {
-      //       imageSrc: '/assets/songmaker/images/4-4.png',
-      //       alt: '4/4',
-      //       width: 80,
-      //       height: 100,
-      //       action: '4/4',
-      //       onClick: () => enableLightTheme()
-      //     }
-      //   ]
-      // });
       // Update beats in SongOptions
       if (currentTimeSignature === "4/4") {
         // set as 3/4
@@ -774,6 +732,58 @@ function invokeVFListener() {
     console.log('no time signature');
   }
 };
+
+function makeDynamics() {
+  const dynamicsContainer = document.getElementById("dynamics_container");
+  dynamics = [];
+  if (dynamicsContainer) {
+    dynamicsContainer.innerHTML = "";
+    for (let i = 0 ; i < numColumns / (songOptions.beats * 2) ; i ++) {
+      dynamicsContainer.innerHTML += 
+           `<div class="dynamics-item">
+              <span class="dynamics-btn" data-dynamics="f" data-index="${i}"><image src="/assets/fonts/f.svg" alt="f" /></span>
+            </div>`;
+      dynamics.push('f');
+    }
+  }
+  addDynamicsListener();
+}
+
+function addDynamicsListener() {
+  tippy('.dynamics-btn', {
+    content: `
+      <div class="tooltip-content">
+        <div style="display: flex;">
+          <button class="confirm-btn" data-dynamics="f"><img src="/assets/fonts/f.svg" /></button>
+          <button class="confirm-btn" data-dynamics="ff"><img src="/assets/fonts/ff.svg" /></button>
+          <button class="confirm-btn" data-dynamics="mf"><img src="/assets/fonts/mf.svg" /></button>
+          <button class="confirm-btn" data-dynamics="mp"><img src="/assets/fonts/mp.svg" /></button>
+          <button class="confirm-btn" data-dynamics="p"><img src="/assets/fonts/p.svg" /></button>
+          <button class="confirm-btn" data-dynamics="pp"><img src="/assets/fonts/pp.svg" /></button>
+        </div>
+      </div>
+    `,
+    allowHTML: true,  // Allows HTML content
+    interactive: true,  // Makes tooltip interactive
+    trigger: 'click',  // Shows on click instead of hover
+    placement: 'top',
+    arrow: true,
+    onMount(instance) {
+      // Add event listeners to buttons inside tooltip
+      const confirmBtns = instance.popper.querySelectorAll('.confirm-btn');
+      
+      // Add click handler to each button
+      confirmBtns.forEach((btn, index) => {
+        btn.addEventListener('click', () => {
+          instance.reference.innerHTML = `<img src="/assets/fonts/${btn.dataset.dynamics}.svg" />`;
+          instance.reference.setAttribute("data-dynamics", btn.dataset.dynamics);
+          dynamics[parseInt(instance.reference.dataset.index)] = btn.dataset.dynamics;
+          instance.hide();
+        });
+      });
+    }
+  });
+}
 
 function saveState() {
   const state = {
@@ -1116,7 +1126,7 @@ function checkConnectedNotes() {
 
   for (let i = 0; i < sorted.length; i++) {
     let currentId = Number(sorted[i].dataset.id);
-    if (currentId < numPitch * numColumns) {
+    if (currentId <= numPitch * numColumns) {
       let prevId = i > 0 ? Number(sorted[i - 1].dataset.id) : null;
       if (prevId % numColumns == 0) prevId = null; // if prev element is in the end of line, set null
   
@@ -1186,6 +1196,8 @@ function togglePercussion(button) {
   if (!percussionGroup[buttonColumn]?.includes(buttonRow)) {
     percussionGroup[buttonColumn].push(buttonRow);
       
+    sound.volume = getVolume(dynamics[Math.floor(buttonColumn / noteUnit())]);
+
     sound.percussionTrack.playNote(
       buttonRow,
       undefined,
@@ -1232,6 +1244,8 @@ function toggleButton(button, forceState = null) {
       noteGroup[buttonColumn] = [];
 
       noteGroup[buttonColumn].push(buttonRow);
+
+      sound.volume = getVolume(dynamics[Math.floor(buttonColumn / noteUnit())]);
       // Play sound only when adding notes
       sound.instrumentTrack.playNote(
         noteIndex[buttonRow],
@@ -1333,6 +1347,14 @@ document.addEventListener("mousemove", (e) => {
     }
     makeResizeBlock();
   }
+
+  // if (
+  //   targetButton &&
+  //   targetButton !== lastSelectedButton &&
+  //   targetButton.getAttribute("data-id") > numPitch * numColumns
+  // ) {
+
+  // }
 });
 
 document.addEventListener("mouseup", () => {
