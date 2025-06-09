@@ -955,6 +955,12 @@ function performReset(options) {
 
   // Reset based on options
   if (options.notes) {
+    // reset percussion beats
+    percussionGroup = [];
+    for (let i = 0; i < numColumns; i++) {
+      percussionGroup.push([]);
+    }
+
     // Add ripple effect to the entire grid
     gridContainer.style.position = "relative";
     const ripple = document.createElement("div");
