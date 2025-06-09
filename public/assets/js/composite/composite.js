@@ -754,12 +754,12 @@ function addDynamicsListener() {
     content: `
       <div class="tooltip-content">
         <div style="display: flex;">
+          <button class="confirm-btn" data-dynamics="pp"><img src="/assets/fonts/pp.svg" /></button>
+          <button class="confirm-btn" data-dynamics="p"><img src="/assets/fonts/p.svg" /></button>
+          <button class="confirm-btn" data-dynamics="mp"><img src="/assets/fonts/mp.svg" /></button>
+          <button class="confirm-btn" data-dynamics="mf"><img src="/assets/fonts/mf.svg" /></button>
           <button class="confirm-btn" data-dynamics="f"><img src="/assets/fonts/f.svg" /></button>
           <button class="confirm-btn" data-dynamics="ff"><img src="/assets/fonts/ff.svg" /></button>
-          <button class="confirm-btn" data-dynamics="mf"><img src="/assets/fonts/mf.svg" /></button>
-          <button class="confirm-btn" data-dynamics="mp"><img src="/assets/fonts/mp.svg" /></button>
-          <button class="confirm-btn" data-dynamics="p"><img src="/assets/fonts/p.svg" /></button>
-          <button class="confirm-btn" data-dynamics="pp"><img src="/assets/fonts/pp.svg" /></button>
         </div>
       </div>
     `,
