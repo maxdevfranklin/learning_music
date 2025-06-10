@@ -527,6 +527,7 @@ function moreCollapseNotes(raw) {
     let length = 1;
 
     while (
+      (i + length) % noteUnit() !== 0 &&
       JSON.stringify(raw[i + length]) === JSON.stringify(current)
     ) {
       length++;
@@ -575,6 +576,7 @@ function drawVex(width = window.innerWidth) {
   moreCollapsedNotes = moreCollapseNotes(noteGroup);
 
   var firstNoteForTie = null;
+  var firstNoteIndex = 0;
   var secondNoteForTie = null;
   var prevNote = null;
   for (let i = 0; i < numColumns; i++) {
@@ -630,33 +632,51 @@ function drawVex(width = window.innerWidth) {
       }
 
       // draw the note tie
-      if (note && !firstNoteForTie && !collapsedNotes[i]?.rest) {
+      if (note && !firstNoteForTie) {
         firstNoteForTie = note;
+        firstNoteIndex = i;
       }
 
-      if (collapsedNotes[i]?.keys[0] === prevNote?.keys[0] && !collapsedNotes[i]?.rest && !prevNote?.rest) {
-        secondNoteForTie = note;
-      } else {
-        if (secondNoteForTie && firstNoteForTie) {
-          drawTie(firstNoteForTie, secondNoteForTie, context);
-
+      if (note && note != firstNoteForTie && !note.glyphProps.rest) {
+        if (note?.keys[0] == firstNoteForTie?.keys[0] && Math.floor(i / (songOptions.beats * songOptions.subdivision)) === Math.floor(firstNoteIndex / (songOptions.beats * songOptions.subdivision))) {
+          drawTie(firstNoteForTie, note, context);
           firstNoteForTie = null;
-          secondNoteForTie = null;
         } else {
-          if (!collapsedNotes[i]?.rest) {
-            firstNoteForTie = note;
-          } else {
-            firstNoteForTie = null;
-          }
+          firstNoteForTie = note;
+          firstNoteIndex = i;
         }
+      } else if (note.glyphProps.rest) {
+        firstNoteForTie = null;
       }
-      prevNote = collapsedNotes[i];
+        
+      // if (note && !firstNoteForTie && !collapsedNotes[i]?.rest) {
+      //   firstNoteForTie = note;
+      //   firstNoteIndex = i;
+      // }
+
+      // if (collapsedNotes[i]?.keys[0] === prevNote?.keys[0] && !collapsedNotes[i]?.rest && !prevNote?.rest && Math.floor(i / (songOptions.beats * songOptions.subdivision)) === Math.floor(firstNoteIndex / (songOptions.beats * songOptions.subdivision)) ) {
+      //   secondNoteForTie = note;
+      // } else {
+      //   if (secondNoteForTie && firstNoteForTie) {
+      //     drawTie(firstNoteForTie, secondNoteForTie, context);
+
+      //     firstNoteForTie = null;
+      //     secondNoteForTie = null;
+      //   } else {
+      //     if (!collapsedNotes[i]?.rest) {
+      //       firstNoteForTie = note;
+      //     } else {
+      //       firstNoteForTie = null;
+      //     }
+      //   }
+      // }
+      // prevNote = collapsedNotes[i];
     }
   }
 
-  if (firstNoteForTie && secondNoteForTie) {
-    drawTie(firstNoteForTie, secondNoteForTie, context);
-  }
+  // if (firstNoteForTie && secondNoteForTie) {
+  //   drawTie(firstNoteForTie, secondNoteForTie, context);
+  // }
 
   // add 60px for padding right
   const svg = div.querySelector("svg");
@@ -675,7 +695,7 @@ function drawVex(width = window.innerWidth) {
 
 function drawTie(firstNote, secondNote, context) {
   if (firstNote && secondNote && context) {
-    // if (!firstNote.glyphProps.rest) {
+    if (!firstNote.glyphProps.rest) {
       const tie = new Vex.Flow.StaveTie({
         first_note: firstNote,    // First note to tie
         last_note: secondNote,     // Second note to tie
@@ -694,7 +714,7 @@ function drawTie(firstNote, secondNote, context) {
       
       // Draw the tie
       tie.setContext(context).draw();
-    // }
+    }
   }
 }
 
