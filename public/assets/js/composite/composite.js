@@ -710,7 +710,7 @@ function addVFListener() {
         resetGrid(() => {
           songOptions.beats = 3;
           currentTimeSignature = "3/4";
-          numColumns = 30;
+          numColumns = 24;
   
           layoutGridContainer();
           drawVex();
