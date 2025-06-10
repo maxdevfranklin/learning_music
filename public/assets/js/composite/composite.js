@@ -343,16 +343,6 @@ function stopPlayback() {
   isPlaying = false;
   playButton.classList.remove("playing");
 
-  const progressBar = document.getElementById("playback_progress");
-  if (progressBar) {
-    progressBar.style.transition = "all 0.3s ease-out";
-    progressBar.style.opacity = "0";
-    setTimeout(() => {
-      progressBar.style.width = "0%";
-      progressBar.style.opacity = "1";
-    }, 300);
-  }
-
   // Remove any remaining column highlights
   const allButtons = document.querySelectorAll(".grid-btn");
   allButtons.forEach((btn) => {
@@ -390,12 +380,6 @@ async function playMusic(startIndex = 0) {
     return;
   }
 
-  // Reset progress bar at start
-  const progressBar = document.getElementById("playback_progress");
-  if (startIndex === 0) {
-    progressBar.style.width = "0%";
-  }
-
   // Remove highlight from all columns
   const allButtons = document.querySelectorAll(".grid-btn");
   allButtons.forEach((btn) => {
@@ -409,7 +393,6 @@ async function playMusic(startIndex = 0) {
   for (let i = startIndex; i < numColumns; i++) {
     if (stopRequested) {
       stopRequested = false;
-      progressBar.style.width = "0%";
       return;
     }
 
@@ -458,7 +441,6 @@ async function playMusic(startIndex = 0) {
     await delay(50);
     playMusic(0);
   } else {
-    progressBar.style.width = "0%";
     allButtons.forEach((btn) => {
       btn.classList.remove("playing-column");
       btn.classList.remove("next-column");
@@ -958,19 +940,6 @@ function performReset(options) {
   // If playing, stop playback first
   if (isPlaying) {
     stopPlayback();
-  }
-
-  // Reset progress bar with fade
-  if (options.notes) {
-    const progressBar = document.getElementById("playback_progress");
-    if (progressBar) {
-      progressBar.style.transition = "all 0.3s ease-out";
-      progressBar.style.opacity = "0";
-      setTimeout(() => {
-        progressBar.style.width = "0%";
-        progressBar.style.opacity = "1";
-      }, 300);
-    }
   }
 
   // Reset based on options
