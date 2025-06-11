@@ -1,3 +1,7 @@
+:root {
+  --note-unit-width: 50px;
+  --note-count-beat: 8;
+}
 * {
   margin: 0;
   padding: 0;
@@ -236,8 +240,8 @@ input {
   flex: 1;
   position: relative;
   display: flex;
-  align-items: center;
   flex-direction: column;
+  overflow-x: auto;
 }
 
 .note-group {
@@ -246,7 +250,7 @@ input {
   grid-gap: 0px;
   width: calc(85% + 140px);
   height: 100%;
-  padding: 0 80px 0 70px;
+  padding: 0 0 0 75px;
 }
 
 .grid-btn {
@@ -258,6 +262,7 @@ input {
   font-size: 16px;
   color: white;
   background-color: #ccc;
+  width: var(--note-unit-width, 50px);
   /* cursor: pointer; */
   /* transition: transform 0.3s ease, background-color 0.3s ease,
     box-shadow 0.3s ease; */
@@ -302,11 +307,11 @@ input {
 .music-sheet {
   align-items: center;
 }
-#notation {
+/* #notation {
   align-items: center;
   display: flex;
   justify-content: center;
-}
+} */
 
 .dynamic-markings-container {
   display: flex;
@@ -723,14 +728,22 @@ input {
 }
 
 .dynamics-container {
-  display: flex;
-  width: calc(85% + 140px);
-  padding: 0 80px 0 70px;
+  display: -webkit-box;
+  /* width: calc(85% + 140px); */
+  padding: 0 0 0 75px;
 }
 
 .dynamics-item {
-  flex: 1;
+  /* flex: 1; */
   display: flex;
+  float: left;
+  border-right: 1.5px solid #58bff1;
+  width: calc(var(--note-unit-width, 50px) * var(--note-count-beat, 8));
+  padding: 5px;
+}
+
+.dynamics-item.start {
+  border-left: 1.5px solid #58bff1;
 }
 
 .dynamics-btn {
@@ -744,7 +757,7 @@ input {
 }
 
 .dynamics-btn img {
-  width: 100px;
+  width: 75px;
 }
 
 .tooltip-content .confirm-btn {

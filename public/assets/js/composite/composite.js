@@ -31,7 +31,8 @@ const MAX_HISTORY = 50;
 // Number of pitches (0-7 for Do to Si, plus 2 for rests)
 // if you want to change this value, you need to change the buttonNote, notePair, noteIndex, and noteColor arrays accordingly
 const numPitch   = 8;
-var   numColumns = 32;
+var   numColumns = 40;
+var   numColumnsWindow = 32;
 const notePair   = ["c/4", "d/4", "e/4", "f/4", "g/4", "a/4", "b/4", "c/5", "d/5", "e/5", "f/5", "g/5", "a/5", "b/5", "c/6"];
 const buttonNote = ["Do", "Ti", "La", "Sol", "Fa", "Mi", "Re", "Do", "Ti", "La", "Sol", "Fa", "Mi", "Re", "Do"];
 const noteIndex  = [48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72];
@@ -163,6 +164,12 @@ let lastSelectedNote = 0;
 let selectionStarted = false;
 let initialButtonState = false; // true if first button was selected, false if unselected
 
+function noteUnitWidth() {
+  var val = (window.innerWidth - 140) / numColumnsWindow;
+  document.documentElement.style.setProperty('--note-unit-width', val + 'px');
+  return val;
+}
+
 function layoutGridContainer() {
   gridContainer.innerHTML = "";
   gridContainer.style.gridTemplateColumns = `repeat(${numColumns}, 1fr)`;
@@ -175,7 +182,7 @@ function layoutGridContainer() {
     let indexColumn = (i - 1) % numColumns;
     let indexRow = Math.floor(i / numColumns);
     if (i <= numPitch * numColumns) {
-      if (Math.floor(indexColumn / (songOptions.beats * songOptions.subdivision)) % 2) {
+      if (Math.floor(indexColumn / noteUnit()) % 2) {
         button.classList.add("oddBtn");
       } else {
         button.classList.add("evenBtn");
@@ -537,7 +544,7 @@ function isVoiceComplete(voice) {
   return expectedTicks === actualTicks;
 }
 
-function drawVex(width = window.innerWidth) {
+function drawVex() {
   // Initialize VexFlow
   const div = document.getElementById("notation");
   div.innerHTML = "";
@@ -545,8 +552,10 @@ function drawVex(width = window.innerWidth) {
   const VF = Vex.Flow;
   const renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
 
-  let sheetLength = width * 0.85 + 140;
-  let noteWidth   = (width * 0.85 + 50) / numColumns;
+  let noteWidth   = noteUnitWidth();
+  let sheetLength = noteWidth * numColumns + 95; // 20px padding
+
+  console.log(sheetLength, noteWidth);
 
   renderer.resize(sheetLength, 150);
   const context = renderer.getContext();
@@ -620,7 +629,7 @@ function drawVex(width = window.innerWidth) {
       }
 
       if (note && note != firstNoteForTie && !note.glyphProps.rest) {
-        if (note?.keys[0] == firstNoteForTie?.keys[0] && Math.floor(i / (songOptions.beats * songOptions.subdivision)) === Math.floor(firstNoteIndex / (songOptions.beats * songOptions.subdivision))) {
+        if (note?.keys[0] == firstNoteForTie?.keys[0] && Math.floor(i / noteUnit()) === Math.floor(firstNoteIndex / noteUnit())) {
           drawTie(firstNoteForTie, note, context);
           firstNoteForTie = null;
         } else {
@@ -636,7 +645,7 @@ function drawVex(width = window.innerWidth) {
       //   firstNoteIndex = i;
       // }
 
-      // if (collapsedNotes[i]?.keys[0] === prevNote?.keys[0] && !collapsedNotes[i]?.rest && !prevNote?.rest && Math.floor(i / (songOptions.beats * songOptions.subdivision)) === Math.floor(firstNoteIndex / (songOptions.beats * songOptions.subdivision)) ) {
+      // if (collapsedNotes[i]?.keys[0] === prevNote?.keys[0] && !collapsedNotes[i]?.rest && !prevNote?.rest && Math.floor(i / noteUnit()) === Math.floor(firstNoteIndex / noteUnit()) ) {
       //   secondNoteForTie = note;
       // } else {
       //   if (secondNoteForTie && firstNoteForTie) {
@@ -662,7 +671,7 @@ function drawVex(width = window.innerWidth) {
 
   // add 60px for padding right
   const svg = div.querySelector("svg");
-  svg.style.paddingRight = "70px";
+  // svg.style.paddingRight = "70px";
 
   let vftimesignature = document.getElementsByClassName('vf-timesignature');
   if (vftimesignature.length) {
@@ -713,6 +722,8 @@ function addVFListener() {
           songOptions.beats = 3;
           currentTimeSignature = "3/4";
           numColumns = 24;
+          numColumnsWindow = 24;
+          document.documentElement.style.setProperty('--note-count-beat', noteUnit());
   
           layoutGridContainer();
           drawVex();
@@ -723,6 +734,8 @@ function addVFListener() {
           songOptions.beats = 4;
           currentTimeSignature = "4/4";
           numColumns = 32;
+          numColumnsWindow = 32;
+          document.documentElement.style.setProperty('--note-count-beat', noteUnit());
           
           layoutGridContainer();
           drawVex();
@@ -740,9 +753,9 @@ function makeDynamics() {
   dynamics = [];
   if (dynamicsContainer) {
     dynamicsContainer.innerHTML = "";
-    for (let i = 0 ; i < numColumns / (songOptions.beats * 2) ; i ++) {
+    for (let i = 0 ; i < numColumns / noteUnit() ; i ++) {
       dynamicsContainer.innerHTML += 
-           `<div class="dynamics-item">
+           `<div class="dynamics-item ${i == 0 ? 'start' : ''}">
               <span class="dynamics-btn" data-dynamics="f" data-index="${i}"><image src="/assets/fonts/f.svg" alt="f" /></span>
             </div>`;
       dynamics.push('f');
