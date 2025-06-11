@@ -31,7 +31,7 @@ const MAX_HISTORY = 50;
 // Number of pitches (0-7 for Do to Si, plus 2 for rests)
 // if you want to change this value, you need to change the buttonNote, notePair, noteIndex, and noteColor arrays accordingly
 const numPitch   = 8;
-var   numColumns = 40;
+var   numColumns = 32;
 var   numColumnsWindow = 32;
 const notePair   = ["c/4", "d/4", "e/4", "f/4", "g/4", "a/4", "b/4", "c/5", "d/5", "e/5", "f/5", "g/5", "a/5", "b/5", "c/6"];
 const buttonNote = ["Do", "Ti", "La", "Sol", "Fa", "Mi", "Re", "Do", "Ti", "La", "Sol", "Fa", "Mi", "Re", "Do"];
@@ -180,8 +180,13 @@ function layoutGridContainer() {
     button.classList.add("grid-btn");
     button.setAttribute("data-id", i);
     let indexColumn = (i - 1) % numColumns;
-    let indexRow = Math.floor(i / numColumns);
+    let indexRow = Math.floor((i - 1) / numColumns);
     if (i <= numPitch * numColumns) {
+      if (noteGroup[indexColumn]?.includes(numPitch - indexRow - 1)) {
+        button.classList.add('selected');
+        button.setAttribute("border", "none");
+        button.style.backgroundColor = noteColor[numPitch - indexRow - 1];
+      }
       if (Math.floor(indexColumn / noteUnit()) % 2) {
         button.classList.add("oddBtn");
       } else {
@@ -228,24 +233,35 @@ function layoutGridContainer() {
       gridContainer.appendChild(button);
   
       //Give note to first button
-      if (i % numColumns == 1) {
-        const noteLabel = document.createElement("div");
-        noteLabel.style.marginRight = "5px";
-        noteLabel.style.display = "inline-block";
-        noteLabel.style.verticalAlign = "center";
-        noteLabel.textContent = buttonNote[indexRow];
-      }
+      // if (i % numColumns == 1) {
+      //   const noteLabel = document.createElement("div");
+      //   noteLabel.style.marginRight = "5px";
+      //   noteLabel.style.display = "inline-block";
+      //   noteLabel.style.verticalAlign = "center";
+      //   noteLabel.textContent = buttonNote[indexRow];
+      // }
       // if (i > (numPitch - 1) * numColumns) button.style.marginBottom = "30px";
     } else {
       button.style.width            = "50%";
       button.style.aspectRatio      = "1";
       button.style.margin           = "auto";
       button.style.backgroundColor  = "#ccc";
-  
+      button.classList.add('percussion');
+
+      if (indexColumn % noteUnit() == 0) {
+        button.classList.add('left');
+      }
+      if (indexColumn % numColumns == numColumns - 1) {
+        button.classList.add('right');
+      }
       let index = button.getAttribute("data-id");
       let buttonRow = Math.floor((index - 1) / numColumns);
       if (buttonRow == numPitch) button.style.borderRadius = "20%";
       else                button.style.borderRadius = "50%";
+      if (percussionGroup[indexColumn]?.includes(numPitch + 1 - buttonRow)) {
+        button.classList.add("selected");
+        button.style.backgroundColor = "#16a8f0";
+      }
       button.addEventListener("click", () => {
         button.classList.toggle("selected");
         if (button.classList.contains("selected")) {
@@ -259,14 +275,10 @@ function layoutGridContainer() {
     }
   }
   makeDynamics();
+  makeResizeBlock();
 }
 layoutGridContainer();
 
-function layoutDynamicsContainer() {
-  addDynamicsListener();
-}
-
-layoutDynamicsContainer();
 // Italian tempo terms mapping
 const tempoTerms = [
   { min: 20,  max: 40,  term: "Grave" },
@@ -430,6 +442,9 @@ async function playMusic(startIndex = 0) {
         0.8
       )
     })
+
+    syncScrollX(noteArea, cursor);
+
     await delay(60000 / songOptions.tempo);
   }
 
@@ -456,6 +471,22 @@ async function playMusic(startIndex = 0) {
         : "scale(1)";
     });
   }
+}
+
+function syncScrollX(slaveElement, masterElement) {
+  // Get the master element's absolute X position
+  const masterRect = masterElement.getBoundingClientRect();
+  const masterX = masterRect.left + window.scrollX;
+  
+  // Calculate the scroll position needed to center the master element
+  const slaveWidth = slaveElement.clientWidth;
+  const scrollTo = masterX - (slaveWidth / 2) + (masterRect.width / 2);
+  
+  // Smooth scroll the slave element
+  slaveElement.scrollTo({
+    left: scrollTo,
+    behavior: 'smooth'
+  });
 }
 
 function collapseNotes(raw) {
@@ -750,15 +781,24 @@ function addVFListener() {
 
 function makeDynamics() {
   const dynamicsContainer = document.getElementById("dynamics_container");
+  var prevDynamics = dynamics;
   dynamics = [];
   if (dynamicsContainer) {
     dynamicsContainer.innerHTML = "";
     for (let i = 0 ; i < numColumns / noteUnit() ; i ++) {
-      dynamicsContainer.innerHTML += 
+      if (prevDynamics[i]) {
+        dynamicsContainer.innerHTML += 
            `<div class="dynamics-item ${i == 0 ? 'start' : ''}">
-              <span class="dynamics-btn" data-dynamics="f" data-index="${i}"><image src="/assets/fonts/f.svg" alt="f" /></span>
+              <span class="dynamics-btn" data-dynamics="${prevDynamics[i]}" data-index="${i}"><image src="/assets/fonts/${prevDynamics[i]}.svg" alt="${prevDynamics[i]}" /></span>
             </div>`;
-      dynamics.push('f');
+        dynamics.push(prevDynamics[i]);  
+      } else {
+        dynamicsContainer.innerHTML += 
+             `<div class="dynamics-item ${i == 0 ? 'start' : ''}">
+                <span class="dynamics-btn" data-dynamics="f" data-index="${i}"><image src="/assets/fonts/f.svg" alt="f" /></span>
+              </div>`;
+        dynamics.push('f');
+      }
     }
   }
   addDynamicsListener();
@@ -928,14 +968,14 @@ function resetGrid(
         };
       }).then((confirmed) => {
         if (!confirmed) return;
-        performReset(options);
         callback?.();
+        performReset(options);
       });
     }
   }
 
-  performReset(options);
   callback?.();
+  performReset(options);
 }
 
 function performReset(options) {
@@ -1005,12 +1045,17 @@ function performReset(options) {
 
     // Remove ripple effect after animation
     setTimeout(() => {
-      gridContainer.removeChild(ripple);
+      gridContainer?.removeChild(ripple);
     }, numColumns * 20 + 600);
 
     // Clear all notes from noteGroup
     for (let i = 0; i < noteGroup.length; i++) {
       noteGroup[i] = [];
+    }
+
+    // Clear all percussion from percussionGroup
+    for (let i = 0; i < percussionGroup.length; i++) {
+      percussionGroup[i] = [];
     }
   }
 
@@ -1023,15 +1068,6 @@ function performReset(options) {
       updateTempoItalianLabel();
     }
   }
-
-  // if (options.timeSignature) {
-  //   // Reset time signature to 4/4
-  //   // if (timeSignatureSelect) {
-  //   //   timeSignatureSelect.value = "4/4";
-  //   currentTimeSignature = "4/4";
-  //   songOptions.beats = 4;
-  //   // }
-  // }
 
   // Update the music notation
   drawVex();
@@ -1056,10 +1092,10 @@ function performReset(options) {
 }
 
 var instrumentTonalButton = new InstrumentToggle(bottomLeft, [
-  {
-    name: "Marimba",
-    audioPath: "marimba",
-  },
+  // {
+  //   name: "Marimba",
+  //   audioPath: "marimba",
+  // },
   {
     name: "Piano",
     audioPath: "piano",
@@ -1138,7 +1174,7 @@ function checkConnectedNotes() {
       let prevId = i > 0 ? Number(sorted[i - 1].dataset.id) : null;
       if (prevId % numColumns == 0) prevId = null; // if prev element is in the end of line, set null
   
-      if (i === 0 || currentId === prevId + 1) {
+      if (i === 0 || (currentId === prevId + 1 && ((prevId - 1) % noteUnit() !== noteUnit() - 1))) {
         currentBlock.push(sorted[i]);
       } else {
         blocks.push(currentBlock);
@@ -1213,7 +1249,7 @@ function togglePercussion(button) {
       0.8
     )
   } else {
-    percussionGroup[buttonColumn].pop(buttonRow);
+    percussionGroup[buttonColumn] = percussionGroup[buttonColumn].filter(item => item !== buttonRow);
   }
 }
 
@@ -1380,3 +1416,43 @@ window.addEventListener("resize", () => {
     drawVex();
   }, 200); // Debounced to avoid flickering
 });
+
+function checkMeasureButtonVisibility() {
+
+}
+
+document.getElementById("add_measure").addEventListener('click', () => {
+  const playButton = document.getElementById("play-button");
+
+  if (isPlaying) {
+    // Switch to play icon
+    playButton.classList.remove("playing");
+    stopPlayback();
+  }
+
+  for (let i = 0 ; i < noteUnit() ; i ++) {
+    noteGroup.push([]);
+    percussionGroup.push([]);
+  }
+  numColumns += noteUnit();
+  layoutGridContainer();
+  drawVex();
+})
+
+document.getElementById("remove_measure").addEventListener('click', () => {
+  const playButton = document.getElementById("play-button");
+
+  if (isPlaying) {
+    // Switch to play icon
+    playButton.classList.remove("playing");
+    stopPlayback();
+  }
+  
+  if (numColumns > numColumnsWindow) {
+    noteGroup.slice(noteGroup.length - noteUnit(), noteUnit());
+    percussionGroup.slice(percussionGroup.length - noteUnit(), noteUnit());
+    numColumns -= noteUnit();
+    layoutGridContainer();
+    drawVex();
+  }
+})

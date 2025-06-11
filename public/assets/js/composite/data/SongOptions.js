@@ -20,7 +20,7 @@ export class SongOptions extends EventEmitter {
     this.rootNote = 48;
 
     //sounds
-    this.instrument = "marimba";
+    this.instrument = "piano";
     this.percussion = "electronic";
   }
 
