@@ -221,6 +221,7 @@ function layoutGridContainer() {
             isResizing = true;
             selectionStarted = true;
             initialButtonState = true;
+            toggleButton(button, true);
           } else {
             toggleButton(button, initialButtonState);
           }
@@ -512,7 +513,8 @@ function collapseNotes(raw) {
 
     while (
       (i + length) % noteUnit() !== 0 &&
-      JSON.stringify(raw[i + length]) === JSON.stringify(current)
+      JSON.stringify(raw[i + length]) === JSON.stringify(current) &&
+      (raw[i + length].includes(-1) || raw[i + length].length === 0)
     ) {
       length++;
     }
@@ -530,7 +532,8 @@ function collapseNotes(raw) {
           dots: dots,
           length: durationLength,
           note: raw[i]?.[0]??-1,
-          rest: isRest
+          rest: isRest,
+          connected: durations.length > 1
         };
     
         result[j] = note;
@@ -556,8 +559,8 @@ function moreCollapseNotes(raw) {
     let length = 1;
 
     while (
-      (i + length) % noteUnit() !== 0 &&
-      JSON.stringify(raw[i + length]) === JSON.stringify(current)
+      JSON.stringify(raw[i + length]) === JSON.stringify(current) &&
+      (raw[i + length].includes(-1) || raw[i + length].length === 0)
     ) {
       length++;
     }
@@ -607,7 +610,7 @@ function drawVex() {
   moreCollapsedNotes = moreCollapseNotes(noteGroup);
 
   var firstNoteForTie = null;
-  var firstNoteIndex = 0;
+  // var firstNoteIndex = 0;
   var secondNoteForTie = null;
   var prevNote = null;
   for (let i = 0; i < numColumns; i++) {
@@ -663,51 +666,51 @@ function drawVex() {
       }
 
       // draw the note tie
-      if (note && !firstNoteForTie) {
-        firstNoteForTie = note;
-        firstNoteIndex = i;
-      }
-
-      if (note && note != firstNoteForTie && !note.glyphProps.rest) {
-        if (note?.keys[0] == firstNoteForTie?.keys[0] && Math.floor(i / noteUnit()) === Math.floor(firstNoteIndex / noteUnit())) {
-          drawTie(firstNoteForTie, note, context);
-          firstNoteForTie = null;
-        } else {
-          firstNoteForTie = note;
-          firstNoteIndex = i;
-        }
-      } else if (note.glyphProps.rest) {
-        firstNoteForTie = null;
-      }
-        
-      // if (note && !firstNoteForTie && !collapsedNotes[i]?.rest) {
+      // if (note && !firstNoteForTie) {
       //   firstNoteForTie = note;
       //   firstNoteIndex = i;
       // }
 
-      // if (collapsedNotes[i]?.keys[0] === prevNote?.keys[0] && !collapsedNotes[i]?.rest && !prevNote?.rest && Math.floor(i / noteUnit()) === Math.floor(firstNoteIndex / noteUnit()) ) {
-      //   secondNoteForTie = note;
-      // } else {
-      //   if (secondNoteForTie && firstNoteForTie) {
-      //     drawTie(firstNoteForTie, secondNoteForTie, context);
-
+      // if (note && note != firstNoteForTie && !note.glyphProps.rest) {
+      //   if (note?.keys[0] == firstNoteForTie?.keys[0] && Math.floor(i / noteUnit()) === Math.floor(firstNoteIndex / noteUnit())) {
+      //     drawTie(firstNoteForTie, note, context);
       //     firstNoteForTie = null;
-      //     secondNoteForTie = null;
       //   } else {
-      //     if (!collapsedNotes[i]?.rest) {
-      //       firstNoteForTie = note;
-      //     } else {
-      //       firstNoteForTie = null;
-      //     }
+      //     firstNoteForTie = note;
+      //     firstNoteIndex = i;
       //   }
+      // } else if (note.glyphProps.rest) {
+      //   firstNoteForTie = null;
       // }
-      // prevNote = collapsedNotes[i];
+      if (collapsedNotes[i].connected) {
+        if (note && !firstNoteForTie && !collapsedNotes[i]?.rest) {
+          firstNoteForTie = note;
+        }
+  
+        if (collapsedNotes[i]?.keys[0] === prevNote?.keys[0] && !collapsedNotes[i]?.rest) {
+          secondNoteForTie = note;
+        } else {
+          if (secondNoteForTie && firstNoteForTie) {
+            drawTie(firstNoteForTie, secondNoteForTie, context);
+  
+            firstNoteForTie = null;
+            secondNoteForTie = null;
+          } else {
+            if (!collapsedNotes[i]?.rest) {
+              firstNoteForTie = note;
+            } else {
+              firstNoteForTie = null;
+            }
+          }
+        }
+      }
+      prevNote = collapsedNotes[i];
     }
   }
 
-  // if (firstNoteForTie && secondNoteForTie) {
-  //   drawTie(firstNoteForTie, secondNoteForTie, context);
-  // }
+  if (firstNoteForTie && secondNoteForTie) {
+    drawTie(firstNoteForTie, secondNoteForTie, context);
+  }
 
   // add 60px for padding right
   const svg = div.querySelector("svg");
@@ -1179,11 +1182,12 @@ function checkConnectedNotes() {
 
   for (let i = 0; i < sorted.length; i++) {
     let currentId = Number(sorted[i].dataset.id);
+    let indexColumn = (currentId - 1) % numColumns;
     if (currentId <= numPitch * numColumns) {
       let prevId = i > 0 ? Number(sorted[i - 1].dataset.id) : null;
       if (prevId % numColumns == 0) prevId = null; // if prev element is in the end of line, set null
   
-      if (i === 0 || (currentId === prevId + 1 && ((prevId - 1) % noteUnit() !== noteUnit() - 1))) {
+      if (i === 0 || (currentId === prevId + 1 && noteGroup[indexColumn].includes(-1) && noteGroup[indexColumn - 1]?.includes(-1))) {
         currentBlock.push(sorted[i]);
       } else {
         blocks.push(currentBlock);
@@ -1280,6 +1284,7 @@ function toggleButton(button, forceState = null) {
       );
     }
 
+    // delete all notes in same beat
     generateSequence(buttonColumn + 1, numColumns, numPitch * numColumns).forEach((id) => {
       const btn = document.querySelector(`.grid-btn[data-id="${id}"]`);
       btn.classList.remove("selected");
@@ -1298,6 +1303,10 @@ function toggleButton(button, forceState = null) {
 
       noteGroup[buttonColumn].push(buttonRow);
 
+      if (isResizing) {
+        noteGroup[buttonColumn].push(-1); // sign for connected notes
+      }
+
       sound.volume = getVolume(dynamics[Math.floor(buttonColumn / noteUnit())]);
       // Play sound only when adding notes
       sound.instrumentTrack.playNote(
@@ -1306,6 +1315,10 @@ function toggleButton(button, forceState = null) {
         undefined,
         0.8
       );
+    }
+
+    if (isResizing && !noteGroup[buttonColumn].includes(-1)) {
+      noteGroup[buttonColumn].push(-1); // sign for connected notes
     }
   } else {
     const originalBg = button.getAttribute("data-original-bg");
@@ -1316,7 +1329,7 @@ function toggleButton(button, forceState = null) {
     // Remove note from noteGroup
     const noteIndex = noteGroup[buttonColumn].indexOf(buttonRow);
     if (noteIndex > -1) {
-      noteGroup[buttonColumn].splice(noteIndex, 1);
+      noteGroup[buttonColumn] = [];
     }
   }
 }
@@ -1368,11 +1381,14 @@ document.addEventListener("mousemove", (e) => {
 
   const buttons = document.elementsFromPoint(e.clientX, e.clientY);
   const targetButton = buttons.find((el) => el.classList.contains("grid-btn"));
+  let index = targetButton.getAttribute("data-id");
+  let indexColumn = (index - 1) % numColumns;
+  let indexRow = Math.floor((index - 1) / numColumns);
 
   if (
     targetButton &&
     targetButton !== lastSelectedButton &&
-    targetButton.getAttribute("data-id") <= numPitch * numColumns
+    index <= numPitch * numColumns
   ) {
     if (!isResizing) {
       lastSelectedButton = targetButton;
@@ -1380,18 +1396,17 @@ document.addEventListener("mousemove", (e) => {
     } else {
       if (
         lastSelectedNote == 0 ||
-        lastSelectedNote == Math.floor( targetButton.getAttribute("data-id") / numColumns )
+        lastSelectedNote == indexRow
       ) {
         if (lastSelectedButton) {
-          if (targetButton.classList.contains("selected") && lastSelectedButton.classList.contains("selected")) {
+          if (targetButton.classList.contains("selected") && lastSelectedButton.classList.contains("selected") && noteGroup[indexColumn].includes(-1)) {
             toggleButton(lastSelectedButton, false);
-          }
-          if (!targetButton.classList.contains("selected") && lastSelectedButton.classList.contains("selected")) {
+          } else {
             toggleButton(targetButton, true);
           }
         }
         lastSelectedButton = targetButton;
-        lastSelectedNote = Math.floor( targetButton.getAttribute("data-id") / numColumns );
+        lastSelectedNote = indexRow;
         targetButton.style.boxShadow = "none";
         
       } else {
