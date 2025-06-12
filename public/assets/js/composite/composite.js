@@ -458,7 +458,9 @@ async function playMusic(startIndex = 0) {
       )
     })
 
-    syncScrollX(noteArea, cursor);
+    setTimeout(() => {
+      syncScrollX(noteArea, cursor);
+    }, 6000 / songOptions.tempo);
 
     await delay(60000 / songOptions.tempo);
   }
@@ -491,12 +493,13 @@ async function playMusic(startIndex = 0) {
 function syncScrollX(slaveElement, masterElement) {
   // Get the master element's absolute X position
   const masterRect = masterElement.getBoundingClientRect();
-  const masterX = masterRect.left + window.scrollX;
+  const masterX = masterRect.left + masterRect.width / 2;
   
   // Calculate the scroll position needed to center the master element
   const slaveWidth = slaveElement.clientWidth;
-  const scrollTo = masterX - (slaveWidth / 2) + (masterRect.width / 2);
+  const scrollTo = slaveElement.scrollLeft + masterX - slaveWidth / 2;
   
+  console.log(masterElement.offsetLeft, masterRect.left);
   // Smooth scroll the slave element
   slaveElement.scrollTo({
     left: scrollTo,
