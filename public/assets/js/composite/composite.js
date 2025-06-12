@@ -20,6 +20,7 @@ let isPlaying = false;
 let stopRequested = false;
 let currentPlaybackTimeout = null;
 let isResizing = false;
+let resizingColumn = -1;
 let currentTimeSignature = "4/4";
 let songChanged = true;
 
@@ -215,12 +216,16 @@ function layoutGridContainer() {
         if (targetButton && targetButton.classList.contains("selected")) {
           const rect = targetButton.getBoundingClientRect();
           if (
-            e.clientX >= rect.right - rect.width / 5 ||
-            e.clientX <= rect.left + rect.width / 5
+            e.clientX >= rect.right - rect.width / 4 ||
+            e.clientX <= rect.left + rect.width / 4
           ) {
             isResizing = true;
             selectionStarted = true;
             initialButtonState = true;
+            resizingColumn = (Number(targetButton.dataset.id) - 1) % numColumns;
+            if (noteGroup[resizingColumn][1]) {
+              resizingColumn = noteGroup[resizingColumn][1] - 1000;
+            }
             toggleButton(button, true);
           } else {
             toggleButton(button, initialButtonState);
@@ -514,7 +519,7 @@ function collapseNotes(raw) {
     while (
       (i + length) % noteUnit() !== 0 &&
       JSON.stringify(raw[i + length]) === JSON.stringify(current) &&
-      (raw[i + length].includes(-1) || raw[i + length].length === 0)
+      (raw[i + length].length > 1 || raw[i + length].length === 0)
     ) {
       length++;
     }
@@ -533,7 +538,7 @@ function collapseNotes(raw) {
           length: durationLength,
           note: raw[i]?.[0]??-1,
           rest: isRest,
-          connected: durations.length > 1
+          connected: raw[i]?.length > 1
         };
     
         result[j] = note;
@@ -560,7 +565,7 @@ function moreCollapseNotes(raw) {
 
     while (
       JSON.stringify(raw[i + length]) === JSON.stringify(current) &&
-      (raw[i + length].includes(-1) || raw[i + length].length === 0)
+      (raw[i + length].length > 1 || raw[i + length].length === 0)
     ) {
       length++;
     }
@@ -613,6 +618,7 @@ function drawVex() {
   // var firstNoteIndex = 0;
   var secondNoteForTie = null;
   var prevNote = null;
+  var prevNoteIndex = 0;
   for (let i = 0; i < numColumns; i++) {
     const x = i === 0 ? 10 : noteWidth * i + 74;
     let stave1 = new VF.Stave(x, 20, noteWidth);
@@ -687,24 +693,27 @@ function drawVex() {
           firstNoteForTie = note;
         }
   
-        if (collapsedNotes[i]?.keys[0] === prevNote?.keys[0] && !collapsedNotes[i]?.rest) {
+        if (collapsedNotes[i]?.keys[0] === prevNote?.keys[0] 
+          && !collapsedNotes[i]?.rest 
+          && prevNoteIndex + prevNote.length == i
+          && JSON.stringify(noteGroup[prevNoteIndex]) === JSON.stringify(noteGroup[i])
+        ) {
           secondNoteForTie = note;
         } else {
           if (secondNoteForTie && firstNoteForTie) {
             drawTie(firstNoteForTie, secondNoteForTie, context);
-  
-            firstNoteForTie = null;
-            secondNoteForTie = null;
+          }
+          secondNoteForTie = null;
+          
+          if (!collapsedNotes[i]?.rest) {
+            firstNoteForTie = note;
           } else {
-            if (!collapsedNotes[i]?.rest) {
-              firstNoteForTie = note;
-            } else {
-              firstNoteForTie = null;
-            }
+            firstNoteForTie = null;
           }
         }
       }
       prevNote = collapsedNotes[i];
+      prevNoteIndex = i;
     }
   }
 
@@ -728,7 +737,7 @@ function drawVex() {
 }
 
 function drawTie(firstNote, secondNote, context) {
-  if (firstNote && secondNote && context) {
+  if (firstNote && secondNote && context && firstNote != secondNote) {
     if (!firstNote.glyphProps.rest) {
       const tie = new Vex.Flow.StaveTie({
         first_note: firstNote,    // First note to tie
@@ -1185,9 +1194,14 @@ function checkConnectedNotes() {
     let indexColumn = (currentId - 1) % numColumns;
     if (currentId <= numPitch * numColumns) {
       let prevId = i > 0 ? Number(sorted[i - 1].dataset.id) : null;
+      let prevColumn = prevId ? (prevId - 1) % numColumns : null;
       if (prevId % numColumns == 0) prevId = null; // if prev element is in the end of line, set null
   
-      if (i === 0 || (currentId === prevId + 1 && noteGroup[indexColumn].includes(-1) && noteGroup[indexColumn - 1]?.includes(-1))) {
+      if (i === 0 || (currentId === prevId + 1 
+        && noteGroup[indexColumn].length > 1 
+        && noteGroup[indexColumn - 1]?.length > 1
+        && noteGroup[prevColumn]?.[1] == noteGroup[indexColumn]?.[1]
+      )) {
         currentBlock.push(sorted[i]);
       } else {
         blocks.push(currentBlock);
@@ -1303,10 +1317,6 @@ function toggleButton(button, forceState = null) {
 
       noteGroup[buttonColumn].push(buttonRow);
 
-      if (isResizing) {
-        noteGroup[buttonColumn].push(-1); // sign for connected notes
-      }
-
       sound.volume = getVolume(dynamics[Math.floor(buttonColumn / noteUnit())]);
       // Play sound only when adding notes
       sound.instrumentTrack.playNote(
@@ -1317,9 +1327,13 @@ function toggleButton(button, forceState = null) {
       );
     }
 
-    if (isResizing && !noteGroup[buttonColumn].includes(-1)) {
-      noteGroup[buttonColumn].push(-1); // sign for connected notes
+    if (isResizing && noteGroup[buttonColumn].length == 1) {
+      noteGroup[buttonColumn].push(1000 + resizingColumn); // sign for connected notes
     }
+    if (isResizing && noteGroup[buttonColumn].length > 1) {
+      noteGroup[buttonColumn][1] = 1000 + resizingColumn; // sign for connected notes
+    }
+
   } else {
     const originalBg = button.getAttribute("data-original-bg");
     button.style.backgroundColor = originalBg || "";
@@ -1399,7 +1413,7 @@ document.addEventListener("mousemove", (e) => {
         lastSelectedNote == indexRow
       ) {
         if (lastSelectedButton) {
-          if (targetButton.classList.contains("selected") && lastSelectedButton.classList.contains("selected") && noteGroup[indexColumn].includes(-1)) {
+          if (targetButton.classList.contains("selected") && lastSelectedButton.classList.contains("selected") && noteGroup[indexColumn].length > 1) {
             toggleButton(lastSelectedButton, false);
           } else {
             toggleButton(targetButton, true);
@@ -1445,25 +1459,69 @@ function checkMeasureButtonVisibility() {
 
 }
 
-document.getElementById("add_measure").addEventListener('click', () => {
-  const playButton = document.getElementById("play-button");
+// document.getElementById("add_measure").addEventListener('click', () => {
+//   const playButton = document.getElementById("play-button");
 
-  if (isPlaying) {
-    // Switch to play icon
-    playButton.classList.remove("playing");
-    stopPlayback();
+//   if (isPlaying) {
+//     // Switch to play icon
+//     playButton.classList.remove("playing");
+//     stopPlayback();
+//   }
+
+//   for (let i = 0 ; i < noteUnit() ; i ++) {
+//     noteGroup.push([]);
+//     percussionGroup.push([]);
+//   }
+//   numColumns += noteUnit();
+//   layoutGridContainer();
+//   drawVex();
+// })
+
+// document.getElementById("remove_measure").addEventListener('click', () => {
+//   const playButton = document.getElementById("play-button");
+
+//   if (isPlaying) {
+//     // Switch to play icon
+//     playButton.classList.remove("playing");
+//     stopPlayback();
+//   }
+  
+//   if (numColumns > numColumnsWindow) {
+//     noteGroup.slice(noteGroup.length - noteUnit(), noteUnit());
+//     percussionGroup.slice(percussionGroup.length - noteUnit(), noteUnit());
+//     numColumns -= noteUnit();
+//     layoutGridContainer();
+//     drawVex();
+//   }
+// })
+
+const modal = document.getElementById("measureModal");
+const openModalBtn = document.getElementById("add_measure");
+const closeBtn = document.querySelector(".close");
+const fourMeasuresBtn = document.getElementById("4measuresBtn");
+const eightMeasuresBtn = document.getElementById("8measuresBtn");
+
+// Open modal when button is clicked
+openModalBtn.addEventListener("click", () => {
+  modal.style.display = "block";
+});
+
+// Close modal when 'X' is clicked
+closeBtn.addEventListener("click", () => {
+  modal.style.display = "none";
+});
+
+// Close modal if clicked outside
+window.addEventListener("click", (event) => {
+  if (event.target === modal) {
+    modal.style.display = "none";
   }
+});
 
-  for (let i = 0 ; i < noteUnit() ; i ++) {
-    noteGroup.push([]);
-    percussionGroup.push([]);
-  }
-  numColumns += noteUnit();
-  layoutGridContainer();
-  drawVex();
-})
-
-document.getElementById("remove_measure").addEventListener('click', () => {
+// Handle 4 Measures selection
+fourMeasuresBtn.addEventListener("click", () => {
+  modal.style.display = "none";
+  
   const playButton = document.getElementById("play-button");
 
   if (isPlaying) {
@@ -1472,11 +1530,35 @@ document.getElementById("remove_measure").addEventListener('click', () => {
     stopPlayback();
   }
   
-  if (numColumns > numColumnsWindow) {
-    noteGroup.slice(noteGroup.length - noteUnit(), noteUnit());
-    percussionGroup.slice(percussionGroup.length - noteUnit(), noteUnit());
-    numColumns -= noteUnit();
+  if (numColumns != noteUnit() * 4) {
+    noteGroup.slice(noteUnit() * 4, noteGroup.length - (noteUnit() * 4));
+    percussionGroup.slice(noteUnit() * 4, percussionGroup.length - (noteUnit() * 4));
+    
+    numColumns = noteUnit() * 4;
     layoutGridContainer();
     drawVex();
   }
-})
+});
+
+// Handle 8 Measures selection
+eightMeasuresBtn.addEventListener("click", () => {
+  modal.style.display = "none";
+
+  const playButton = document.getElementById("play-button");
+
+  if (isPlaying) {
+    // Switch to play icon
+    playButton.classList.remove("playing");
+    stopPlayback();
+  }
+  
+  if (numColumns != noteUnit() * 8) {
+    for (let i = 0 ; i < noteUnit() * 8 - numColumns ; i ++) {
+      noteGroup.push([]);
+      percussionGroup.push([]);
+    }
+    numColumns = noteUnit() * 8;
+    layoutGridContainer();
+    drawVex();
+  }
+});
