@@ -274,7 +274,7 @@ input {
   cursor: pointer;
 }
 
-.grid-btn.selected {
+.grid-btn.selected:not(.percussion) {
   /* background-color: #ffcc00; */
   /* transform: scale(1.01); */
   /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); */
@@ -365,6 +365,37 @@ input {
   cursor: ew-resize;
   border-radius: 0px 10px 10px 0;
   z-index: 100;
+}
+
+.percussion {
+  /* background-color: #FFF; */
+}
+
+.percussion::after {
+  content: "";
+  position: absolute;
+  width: 25%;
+  left: 50%;
+  font-size: 12px;
+  color: #fff;
+  background-color: #ccc;
+  text-align: center;
+  line-height: 20px;
+  cursor: ew-resize;
+  z-index: 100;
+  aspect-ratio: 1 / 1;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 20%;
+}
+
+.percussion.circle::after {
+  border-radius: 50%;
+}
+
+.percussion.selected::after {
+  width: 50%;
+  background-color: #16a8f0;
 }
 
 /* .percussion.left::before {
@@ -769,14 +800,14 @@ input {
   /* flex: 1; */
   display: flex;
   float: left;
-  border-right: 1.5px solid #58bff1;
+  /* border-right: 1.5px solid #58bff1; */
   width: calc(var(--note-unit-width, 50px) * var(--note-count-beat, 8));
   padding: 5px;
 }
 
-.dynamics-item.start {
+/* .dynamics-item.start {
   border-left: 1.5px solid #58bff1;
-}
+} */
 
 .dynamics-btn {
   border: 1px dotted #333;

@@ -242,11 +242,20 @@ function layoutGridContainer() {
       // }
       // if (i > (numPitch - 1) * numColumns) button.style.marginBottom = "30px";
     } else {
-      button.style.width            = "50%";
-      button.style.aspectRatio      = "1";
-      button.style.margin           = "auto";
-      button.style.backgroundColor  = "#ccc";
+      // button.style.width            = "50%";
+      // button.style.aspectRatio      = "1";
+      // button.style.margin           = "auto";
+      // button.style.backgroundColor  = "#ccc";
       button.classList.add('percussion');
+
+      if (Math.floor(indexColumn / noteUnit()) % 2) {
+        button.classList.add("oddBtn");
+      } else {
+        button.classList.add("evenBtn");
+      }
+      if (indexColumn % 2 && indexColumn != 0) {
+        button.classList.add("mainDivider");
+      }
 
       if (indexColumn % noteUnit() == 0) {
         button.classList.add('left');
@@ -256,19 +265,19 @@ function layoutGridContainer() {
       }
       let index = button.getAttribute("data-id");
       let buttonRow = Math.floor((index - 1) / numColumns);
-      if (buttonRow == numPitch) button.style.borderRadius = "20%";
-      else                button.style.borderRadius = "50%";
+      if (buttonRow == numPitch)  button.classList.add("rect");
+      else                        button.classList.add("circle");
       if (percussionGroup[indexColumn]?.includes(numPitch + 1 - buttonRow)) {
         button.classList.add("selected");
-        button.style.backgroundColor = "#16a8f0";
+        // button.style.backgroundColor = "#16a8f0";
       }
       button.addEventListener("click", () => {
         button.classList.toggle("selected");
-        if (button.classList.contains("selected")) {
-          button.style.backgroundColor  = "#16a8f0";
-        } else {
-          button.style.backgroundColor  = "#ccc";
-        }
+        // if (button.classList.contains("selected")) {
+        //   button.style.backgroundColor  = "#16a8f0";
+        // } else {
+        //   button.style.backgroundColor  = "#ccc";
+        // }
         togglePercussion(button);
       });
       gridContainer.appendChild(button);
@@ -788,15 +797,15 @@ function makeDynamics() {
     for (let i = 0 ; i < numColumns / noteUnit() ; i ++) {
       if (prevDynamics[i]) {
         dynamicsContainer.innerHTML += 
-           `<div class="dynamics-item ${i == 0 ? 'start' : ''}">
+           `<div class="dynamics-item mainDivider ${i % 2 == 0 ? "evenBtn" : "oddBtn"}">
               <span class="dynamics-btn" data-dynamics="${prevDynamics[i]}" data-index="${i}"><image src="/assets/fonts/${prevDynamics[i]}.svg" alt="${prevDynamics[i]}" /></span>
             </div>`;
         dynamics.push(prevDynamics[i]);  
       } else {
         dynamicsContainer.innerHTML += 
-             `<div class="dynamics-item ${i == 0 ? 'start' : ''}">
-                <span class="dynamics-btn" data-dynamics="f" data-index="${i}"><image src="/assets/fonts/f.svg" alt="f" /></span>
-              </div>`;
+           `<div class="dynamics-item mainDivider ${i % 2 == 0 ? "evenBtn" : "oddBtn"}">
+              <span class="dynamics-btn" data-dynamics="f" data-index="${i}"><image src="/assets/fonts/f.svg" alt="f" /></span>
+            </div>`;
         dynamics.push('f');
       }
     }
