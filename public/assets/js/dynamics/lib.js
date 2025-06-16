@@ -147,6 +147,7 @@ musicbox.Carousel.prototype.next = function () {
   this.audio = document.getElementById("bcAudio");
   this.audio.pause()
 
+  resetDynamics(); // Reset dynamics before changing character
   this.setActive(index);
   selectedCharacter = (selectedCharacter + 1) % 4;
 };
@@ -159,6 +160,7 @@ musicbox.Carousel.prototype.prev = function () {
   this.audio = document.getElementById("bcAudio");
   this.audio.pause()
 
+  resetDynamics(); // Reset dynamics before changing character
   this.setActive(index);
   selectedCharacter = (selectedCharacter + 3) % 4;
 };
@@ -2369,6 +2371,18 @@ musicbox.config.woodblock.sequencer = {
     [1, 1, 1, 1, 1, 1, 1, 1],
   ],
 };
+
+function resetDynamics() {
+  let zones = document.querySelectorAll(".drop-zone");
+  zones.forEach((zone) => {
+    zone.classList.remove("blinking");
+    zone.removeAttribute("data-index");
+    // Clear any content inside the zone
+    while (zone.firstChild) {
+      zone.removeChild(zone.firstChild);
+    }
+  });
+}
 
 // document.getElementById("songSelect").addEventListener("change", function () {
 //   placeBPM();
