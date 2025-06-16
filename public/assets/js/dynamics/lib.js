@@ -147,7 +147,9 @@ musicbox.Carousel.prototype.next = function () {
   this.audio = document.getElementById("bcAudio");
   this.audio.pause()
 
-  resetDynamics(); // Reset dynamics before changing character
+  // Reset all states before changing character
+  resetDynamics();
+  isStart = 0; // Reset the start state
   this.setActive(index);
   selectedCharacter = (selectedCharacter + 1) % 4;
 };
@@ -160,7 +162,9 @@ musicbox.Carousel.prototype.prev = function () {
   this.audio = document.getElementById("bcAudio");
   this.audio.pause()
 
-  resetDynamics(); // Reset dynamics before changing character
+  // Reset all states before changing character
+  resetDynamics();
+  isStart = 0; // Reset the start state
   this.setActive(index);
   selectedCharacter = (selectedCharacter + 3) % 4;
 };
