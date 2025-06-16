@@ -7,22 +7,28 @@ musicbox.config.conga = {};
 let volumeLevel = 0;
 var selectedCharacter = 0;
 const bpmArray = 
-[[0.97015, 1.0833],
+[[0.97015],
 [1],
 [1.2],
 [0.90284]];
 
 const delayArray = 
-[[200, 0],
+[[200],
 [400],
 [450],
-[100]];;
+[58]];;
 
 const intervalArray = 
 [[20, 31, 30,  105],
 [125, 320,  209,  169],
 [48,  34, 196,  34],
 [53, 137,  206,  28]];
+
+const currentTimeArray = 
+[[0],
+[0],
+[0],
+[0]];
 
 // const volumeArray = 
 // [[1, 0.1, 2,  2],
@@ -887,11 +893,12 @@ musicbox.MultiSequencer = function (sequencers) {
 
         const row_array = this.activeSequencerIndex;
         const column_array = randomIndex;
-        // this.audio.playbackRate = bpmArray[row_array][column_array];
-        this.audio.playbackRate = document.getElementById("songBPM").value;
+        // this.audio.playbackRate = document.getElementById("songBPM").value;
+        this.audio.playbackRate = bpmArray[this.activeSequencerIndex][0];
 
         const startAndLoopAudio = () => {
-          this.audio.currentTime = document.getElementById("songCut").value;
+          // this.audio.currentTime = document.getElementById("songCut").value;
+          this.audio.currentTime = currentTimeArray[this.activeSequencerIndex][0];
           this.audio.play();
       
           // After 30 seconds, stop and restart
@@ -906,7 +913,7 @@ musicbox.MultiSequencer = function (sequencers) {
         this.loopTimeout = setTimeout(() => {
           startAndLoopAudio();
         // }, delayArray[row_array][column_array]);
-        }, document.getElementById("songDelay").value);
+        }, delayArray[this.activeSequencerIndex][0]);
           
       }
       if(!this.playing){
