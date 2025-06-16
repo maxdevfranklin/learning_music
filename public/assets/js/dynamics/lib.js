@@ -885,7 +885,7 @@ musicbox.MultiSequencer = function (sequencers) {
         if(this.activeSequencerIndex == 1)  randomIndex = Math.floor(Math.random() * 2);
 
         // this.audio.src = `/assets/music/dynamics/${this.activeSequencerIndex + 1}/${randomIndex + 1}.mp3`;
-        this.audio.src = `/assets/music/dynamics/${this.activeSequencerIndex + 1}/${document.getElementById("songSelect").value}.mp3`;
+        this.audio.src = `/assets/music/dynamics/${this.activeSequencerIndex + 1}/1.mp3`;
 
         console.log(document.getElementById("songSelect").value);
 
