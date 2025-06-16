@@ -13,9 +13,9 @@ const bpmArray =
 [0.90284]];
 
 const delayArray = 
-[[200],
-[400],
-[450],
+[[230],
+[440],
+[670],
 [58]];;
 
 const intervalArray = 
@@ -25,10 +25,10 @@ const intervalArray =
 [53, 137,  206,  28]];
 
 const currentTimeArray = 
-[[0],
-[0],
-[0],
-[0]];
+[[0.9],
+[2.2],
+[0.6],
+[0.3]];
 
 // const volumeArray = 
 // [[1, 0.1, 2,  2],
