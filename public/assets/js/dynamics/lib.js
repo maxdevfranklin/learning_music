@@ -892,7 +892,6 @@ musicbox.MultiSequencer = function (sequencers) {
         this.audio.src = `/assets/music/dynamics/${this.activeSequencerIndex + 1}/1.mp3`;
 
 
-
         const row_array = this.activeSequencerIndex;
         const column_array = randomIndex;
         // this.audio.playbackRate = document.getElementById("songBPM").value;
@@ -989,6 +988,11 @@ musicbox.MultiSequencer.prototype.play = function () {
   this.activeSequencer.start();
   this.playing = true;
 
+  // Reset blinking state when starting to play
+  isStart = 0;
+  let zones = document.querySelectorAll(".drop-zone");
+  zones.forEach((zone) => zone.classList.remove("blinking"));
+
   this.fire("play");
 };
 
@@ -1002,6 +1006,10 @@ musicbox.MultiSequencer.prototype.pause = function (suspend) {
   if (this.activeSequencer) this.activeSequencer.stop();
 
   this.playing = false;
+
+  // Clear blinking state when pausing
+  let zones = document.querySelectorAll(".drop-zone");
+  zones.forEach((zone) => zone.classList.remove("blinking"));
 
   this.fire("pause");
 };
