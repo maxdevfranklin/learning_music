@@ -1125,10 +1125,6 @@ var instrumentTonalButton = new InstrumentToggle(bottomLeft, [
     audioPath: "piano",
   },
   {
-    name: "Strings",
-    audioPath: "strings",
-  },
-  {
     name: "Woodwind",
     audioPath: "woodwind",
   },
@@ -1458,110 +1454,70 @@ window.addEventListener("resize", () => {
   }, 200); // Debounced to avoid flickering
 });
 
-function checkMeasureButtonVisibility() {
+function addMeasureListener() {
+  tippy('#add_measure', {
+    appendTo: () => document.body,
+    content: `
+      <div class="tooltip-content">
+        <div style="display: flex;">
+          <button class="select-measure" data-measure="4">4 Measure</button>
+          <button class="select-measure" data-measure="8">8 Measure</button>
+        </div>
+      </div>
+    `,
+    allowHTML: true,  // Allows HTML content
+    interactive: true,  // Makes tooltip interactive
+    trigger: 'click',  // Shows on click instead of hover
+    placement: 'top',
+    arrow: true,
+    onMount(instance) {
+      // Add event listeners to buttons inside tooltip
+      const measureBtns = instance.popper.querySelectorAll('.select-measure');
+      
+      // Add click handler to each button
+      measureBtns.forEach((btn, index) => {
+        btn.addEventListener('click', () => {
+          if (btn.dataset.measure == "4") {
+            const playButton = document.getElementById("play-button");
 
+            if (isPlaying) {
+              // Switch to play icon
+              playButton.classList.remove("playing");
+              stopPlayback();
+            }
+            
+            if (numColumns != noteUnit() * 4) {
+              noteGroup.slice(noteUnit() * 4, noteGroup.length - (noteUnit() * 4));
+              percussionGroup.slice(noteUnit() * 4, percussionGroup.length - (noteUnit() * 4));
+              
+              numColumns = noteUnit() * 4;
+              layoutGridContainer();
+              drawVex();
+            }
+          } else {
+            const playButton = document.getElementById("play-button");
+
+            if (isPlaying) {
+              // Switch to play icon
+              playButton.classList.remove("playing");
+              stopPlayback();
+            }
+            
+            if (numColumns != noteUnit() * 8) {
+              for (let i = 0 ; i < noteUnit() * 8 - numColumns ; i ++) {
+                noteGroup.push([]);
+                percussionGroup.push([]);
+              }
+              numColumns = noteUnit() * 8;
+              layoutGridContainer();
+              drawVex();
+            }
+          }
+          instance.hide();
+        });
+      });
+    }
+  });
 }
 
-// document.getElementById("add_measure").addEventListener('click', () => {
-//   const playButton = document.getElementById("play-button");
-
-//   if (isPlaying) {
-//     // Switch to play icon
-//     playButton.classList.remove("playing");
-//     stopPlayback();
-//   }
-
-//   for (let i = 0 ; i < noteUnit() ; i ++) {
-//     noteGroup.push([]);
-//     percussionGroup.push([]);
-//   }
-//   numColumns += noteUnit();
-//   layoutGridContainer();
-//   drawVex();
-// })
-
-// document.getElementById("remove_measure").addEventListener('click', () => {
-//   const playButton = document.getElementById("play-button");
-
-//   if (isPlaying) {
-//     // Switch to play icon
-//     playButton.classList.remove("playing");
-//     stopPlayback();
-//   }
-  
-//   if (numColumns > numColumnsWindow) {
-//     noteGroup.slice(noteGroup.length - noteUnit(), noteUnit());
-//     percussionGroup.slice(percussionGroup.length - noteUnit(), noteUnit());
-//     numColumns -= noteUnit();
-//     layoutGridContainer();
-//     drawVex();
-//   }
-// })
-
-const modal = document.getElementById("measureModal");
-const openModalBtn = document.getElementById("add_measure");
-const closeBtn = document.querySelector(".close");
-const fourMeasuresBtn = document.getElementById("4measuresBtn");
-const eightMeasuresBtn = document.getElementById("8measuresBtn");
-
-// Open modal when button is clicked
-openModalBtn.addEventListener("click", () => {
-  modal.style.display = "block";
-});
-
-// Close modal when 'X' is clicked
-closeBtn.addEventListener("click", () => {
-  modal.style.display = "none";
-});
-
-// Close modal if clicked outside
-window.addEventListener("click", (event) => {
-  if (event.target === modal) {
-    modal.style.display = "none";
-  }
-});
-
-// Handle 4 Measures selection
-fourMeasuresBtn.addEventListener("click", () => {
-  modal.style.display = "none";
-  
-  const playButton = document.getElementById("play-button");
-
-  if (isPlaying) {
-    // Switch to play icon
-    playButton.classList.remove("playing");
-    stopPlayback();
-  }
-  
-  if (numColumns != noteUnit() * 4) {
-    noteGroup.slice(noteUnit() * 4, noteGroup.length - (noteUnit() * 4));
-    percussionGroup.slice(noteUnit() * 4, percussionGroup.length - (noteUnit() * 4));
-    
-    numColumns = noteUnit() * 4;
-    layoutGridContainer();
-    drawVex();
-  }
-});
-
-// Handle 8 Measures selection
-eightMeasuresBtn.addEventListener("click", () => {
-  modal.style.display = "none";
-
-  const playButton = document.getElementById("play-button");
-
-  if (isPlaying) {
-    // Switch to play icon
-    playButton.classList.remove("playing");
-    stopPlayback();
-  }
-  
-  if (numColumns != noteUnit() * 8) {
-    for (let i = 0 ; i < noteUnit() * 8 - numColumns ; i ++) {
-      noteGroup.push([]);
-      percussionGroup.push([]);
-    }
-    numColumns = noteUnit() * 8;
-    layoutGridContainer();
-    drawVex();
-  }
-});
+addMeasureListener();

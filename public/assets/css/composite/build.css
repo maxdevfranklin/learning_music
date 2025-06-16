@@ -883,3 +883,9 @@ input {
 .close:hover {
   color: black;
 }
+
+.select-measure {
+  margin: 5px;
+  padding: 5px;
+  font-size: 1.3em;
+}
