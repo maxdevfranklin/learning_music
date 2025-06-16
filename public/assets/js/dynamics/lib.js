@@ -149,7 +149,6 @@ musicbox.Carousel.prototype.next = function () {
 
   this.setActive(index);
   selectedCharacter = (selectedCharacter + 1) % 4;
-  placeBPM();
 };
 
 musicbox.Carousel.prototype.prev = function () {
@@ -162,7 +161,6 @@ musicbox.Carousel.prototype.prev = function () {
 
   this.setActive(index);
   selectedCharacter = (selectedCharacter + 3) % 4;
-  placeBPM();
 };
 
 musicbox.Carousel.prototype.update = function () {
@@ -2372,20 +2370,20 @@ musicbox.config.woodblock.sequencer = {
   ],
 };
 
-document.getElementById("songSelect").addEventListener("change", function () {
-  placeBPM();
-});
+// document.getElementById("songSelect").addEventListener("change", function () {
+//   placeBPM();
+// });
 
-placeBPM();
-function placeBPM() {
-  selectedSong = document.getElementById("songSelect").value;
-  songBPM = bpmArray[selectedCharacter][selectedSong - 1];
-  songDelay = delayArray[selectedCharacter][selectedSong - 1];
+// placeBPM();
+// function placeBPM() {
+//   selectedSong = document.getElementById("songSelect").value;
+//   songBPM = bpmArray[selectedCharacter][selectedSong - 1];
+//   songDelay = delayArray[selectedCharacter][selectedSong - 1];
 
-  document.getElementById("songBPM").value = songBPM;
-  document.getElementById("songDelay").value = songDelay;
-  // const songBPM = bpmArray[musicbox.MultiSequencer.activeSequencerIndex][selectedSong - 1];
-}
+//   document.getElementById("songBPM").value = songBPM;
+//   document.getElementById("songDelay").value = songDelay;
+//   // const songBPM = bpmArray[musicbox.MultiSequencer.activeSequencerIndex][selectedSong - 1];
+// }
 
 
 //# sourceMappingURL=sourcemaps/lib.js.map
