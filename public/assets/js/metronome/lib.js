@@ -2773,13 +2773,16 @@ function toggleInit() {
     // }
     stop();
     btn.innerHTML = '<i class="fa-solid fa-play"></i>';
-
+    range.style.pointerEvents = 'auto'; // Enable range slider
+    document.getElementById("tempoSelect").disabled = false; // Enable tempo select
     // document.getElementById("animMute").style.backgroundColor = "#fff";
     // document.getElementById("animMute").style.border = "2px solid #222";
   } else if (!running) {
     document.getElementsByClassName("play-pause")[0].click();
     run();
     btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+    range.style.pointerEvents = 'none'; // Disable range slider
+    document.getElementById("tempoSelect").disabled = true; // Disable tempo select
     // document.getElementById("animMute").style.backgroundColor = "#eee";
     // document.getElementById("animMute").style.border = "none";
   }
@@ -2788,6 +2791,7 @@ function toggleInit() {
 btn.addEventListener("click", toggleInit);
 
 range.addEventListener("mousemove", (event) => {
+  if (running) return; // Don't allow tempo changes while running
   if (!mouseDown) return;
 
   cursorPos = Math.floor((event.clientY - 200) / 1.2);
@@ -2845,6 +2849,7 @@ function init_select() {
 init_select();
 
 document.getElementById("tempoSelect").addEventListener("change", () => {
+  if (running) return; // Don't allow tempo changes while running
   bpmNumber = document.getElementById("BPMnumber");
   const selected = document.getElementById("tempoSelect").value;
   if (selected == "Largo") bpmNumber.innerHTML = 40;
@@ -2863,11 +2868,12 @@ range.addEventListener("mouseleave", () => {
 });
 
 range.addEventListener("mousedown", () => {
+  if (running) return; // Don't allow tempo changes while running
   mouseDown = true;
-  //   toggleInit();
 });
 
 range.addEventListener("mouseup", () => {
+  if (running) return; // Don't allow tempo changes while running
   mouseDown = false;
 });
 
