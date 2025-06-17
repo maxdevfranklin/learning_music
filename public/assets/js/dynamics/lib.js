@@ -7,22 +7,28 @@ musicbox.config.conga = {};
 let volumeLevel = 0;
 var selectedCharacter = 0;
 const bpmArray = 
-[[0.97015, 1.0833],
+[[0.97015],
 [1],
 [1.2],
 [0.90284]];
 
 const delayArray = 
-[[200, 0],
-[400],
-[450],
-[100]];;
+[[230],
+[440],
+[670],
+[58]];;
 
 const intervalArray = 
 [[20, 31, 30,  105],
 [125, 320,  209,  169],
 [48,  34, 196,  34],
 [53, 137,  206,  28]];
+
+const currentTimeArray = 
+[[0.9],
+[2.2],
+[0.6],
+[0.3]];
 
 // const volumeArray = 
 // [[1, 0.1, 2,  2],
@@ -141,9 +147,12 @@ musicbox.Carousel.prototype.next = function () {
   this.audio = document.getElementById("bcAudio");
   this.audio.pause()
 
+  // Reset all states before changing character
+  resetDynamics();
+  isStart = 0; // Reset the start state
   this.setActive(index);
   selectedCharacter = (selectedCharacter + 1) % 4;
-  placeBPM();
+  placeBPM
 };
 
 musicbox.Carousel.prototype.prev = function () {
@@ -154,6 +163,9 @@ musicbox.Carousel.prototype.prev = function () {
   this.audio = document.getElementById("bcAudio");
   this.audio.pause()
 
+  // Reset all states before changing character
+  resetDynamics();
+  isStart = 0; // Reset the start state
   this.setActive(index);
   selectedCharacter = (selectedCharacter + 3) % 4;
   placeBPM();
@@ -878,20 +890,18 @@ musicbox.MultiSequencer = function (sequencers) {
         let randomIndex = 1;
         if(this.activeSequencerIndex == 1)  randomIndex = Math.floor(Math.random() * 2);
 
-        // this.audio.src = `/assets/music/dynamics/${this.activeSequencerIndex + 1}/${randomIndex + 1}.mp3`;
         this.audio.src = `/assets/music/dynamics/${this.activeSequencerIndex + 1}/${document.getElementById("songSelect").value}.mp3`;
-
-        console.log(document.getElementById("songSelect").value);
-
+        // this.audio.src = `/assets/music/dynamics/${this.activeSequencerIndex + 1}/1.mp3`;
 
 
         const row_array = this.activeSequencerIndex;
         const column_array = randomIndex;
-        // this.audio.playbackRate = bpmArray[row_array][column_array];
         this.audio.playbackRate = document.getElementById("songBPM").value;
+        // this.audio.playbackRate = bpmArray[this.activeSequencerIndex][0];
 
         const startAndLoopAudio = () => {
           this.audio.currentTime = document.getElementById("songCut").value;
+          // this.audio.currentTime = currentTimeArray[this.activeSequencerIndex][0];
           this.audio.play();
       
           // After 30 seconds, stop and restart
@@ -905,8 +915,8 @@ musicbox.MultiSequencer = function (sequencers) {
         // Start after optional delay
         this.loopTimeout = setTimeout(() => {
           startAndLoopAudio();
-        // }, delayArray[row_array][column_array]);
         }, document.getElementById("songDelay").value);
+        // }, delayArray[this.activeSequencerIndex][0]);
           
       }
       if(!this.playing){
@@ -980,6 +990,11 @@ musicbox.MultiSequencer.prototype.play = function () {
   this.activeSequencer.start();
   this.playing = true;
 
+  // Reset blinking state when starting to play
+  isStart = 0;
+  let zones = document.querySelectorAll(".drop-zone");
+  zones.forEach((zone) => zone.classList.remove("blinking"));
+
   this.fire("play");
 };
 
@@ -993,6 +1008,10 @@ musicbox.MultiSequencer.prototype.pause = function (suspend) {
   if (this.activeSequencer) this.activeSequencer.stop();
 
   this.playing = false;
+
+  // Clear blinking state when pausing
+  let zones = document.querySelectorAll(".drop-zone");
+  zones.forEach((zone) => zone.classList.remove("blinking"));
 
   this.fire("pause");
 };
@@ -2366,6 +2385,18 @@ musicbox.config.woodblock.sequencer = {
     [1, 1, 1, 1, 1, 1, 1, 1],
   ],
 };
+
+function resetDynamics() {
+  let zones = document.querySelectorAll(".drop-zone");
+  zones.forEach((zone) => {
+    zone.classList.remove("blinking");
+    zone.removeAttribute("data-index");
+    // Clear any content inside the zone
+    while (zone.firstChild) {
+      zone.removeChild(zone.firstChild);
+    }
+  });
+}
 
 document.getElementById("songSelect").addEventListener("change", function () {
   placeBPM();

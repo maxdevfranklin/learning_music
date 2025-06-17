@@ -11,6 +11,11 @@ let prevBpm = null;
 selectedCharacter = 0;
 let timeDelay = 1;
 
+// Add these variables at the top of the file with other global variables
+let wasAudioPlaying = false;
+let wasCharacterPlaying = false;
+let wasWavesAnimating = false;
+
 musicbox.Animation = function (data, framerate) {
   this.data = data;
   this.duration = data.duration / 1000;
@@ -2751,9 +2756,24 @@ function run() {
 
   startTime = then;
   needle.init();
-  //   setTimeout(() => {
+  
+  // Resume background music if it was playing before pause
+  const bcAudio = document.getElementById("bcAudio");
+  if (bcAudio && !bcAudio.muted && wasAudioPlaying) {
+    bcAudio.play();
+  }
+  
+  // Resume character animation if it was playing before pause
+  if (typeof tempCharacter !== 'undefined' && tempCharacter && wasCharacterPlaying) {
+    tempCharacter.play();
+  }
+  
+  // Resume wave animations if they were active before pause
+  if (wasWavesAnimating) {
+    restartAnimation();
+  }
+  
   animate();
-  //   }, 100);
 }
 
 function stop() {
@@ -2764,6 +2784,24 @@ function stop() {
   display();
   needle.init_display();
   window.cancelAnimationFrame(animator);
+  
+  // Store current state before stopping
+  const bcAudio = document.getElementById("bcAudio");
+  if (bcAudio) {
+    wasAudioPlaying = !bcAudio.paused && !bcAudio.muted;
+    bcAudio.pause();
+  }
+  
+  // Store character animation state
+  if (typeof tempCharacter !== 'undefined' && tempCharacter) {
+    wasCharacterPlaying = !tempCharacter.paused;
+    tempCharacter.pause();
+  }
+  
+  // Store wave animation state
+  const waves = document.querySelectorAll(".parallax > use");
+  wasWavesAnimating = waves.length > 0 && waves[0].style.animation !== "none";
+  stopAnimation();
 }
 
 function toggleInit() {
@@ -2773,13 +2811,16 @@ function toggleInit() {
     // }
     stop();
     btn.innerHTML = '<i class="fa-solid fa-play"></i>';
-
+    range.style.pointerEvents = 'auto'; // Enable range slider
+    document.getElementById("tempoSelect").disabled = false; // Enable tempo select
     // document.getElementById("animMute").style.backgroundColor = "#fff";
     // document.getElementById("animMute").style.border = "2px solid #222";
   } else if (!running) {
     document.getElementsByClassName("play-pause")[0].click();
     run();
     btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+    range.style.pointerEvents = 'none'; // Disable range slider
+    document.getElementById("tempoSelect").disabled = true; // Disable tempo select
     // document.getElementById("animMute").style.backgroundColor = "#eee";
     // document.getElementById("animMute").style.border = "none";
   }
@@ -2788,6 +2829,7 @@ function toggleInit() {
 btn.addEventListener("click", toggleInit);
 
 range.addEventListener("mousemove", (event) => {
+  if (running) return; // Don't allow tempo changes while running
   if (!mouseDown) return;
 
   cursorPos = Math.floor((event.clientY - 200) / 1.2);
@@ -2845,6 +2887,7 @@ function init_select() {
 init_select();
 
 document.getElementById("tempoSelect").addEventListener("change", () => {
+  if (running) return; // Don't allow tempo changes while running
   bpmNumber = document.getElementById("BPMnumber");
   const selected = document.getElementById("tempoSelect").value;
   if (selected == "Largo") bpmNumber.innerHTML = 40;
@@ -2863,11 +2906,12 @@ range.addEventListener("mouseleave", () => {
 });
 
 range.addEventListener("mousedown", () => {
+  if (running) return; // Don't allow tempo changes while running
   mouseDown = true;
-  //   toggleInit();
 });
 
 range.addEventListener("mouseup", () => {
+  if (running) return; // Don't allow tempo changes while running
   mouseDown = false;
 });
 
@@ -2875,24 +2919,35 @@ document.getElementById("bcMute").addEventListener("click", function () {
   this.audio = document.getElementById("bcAudio");
   const icon = document.getElementById("mute-icon");
   this.btn = document.getElementById("bcMute");
+  
   if (mute_config == 0) {
-    this.audio.muted = true;
+    // Music Off -> On
     mute_config = 1;
     icon.classList.remove("fa-volume-xmark");
     icon.classList.add("fa-volume-high");
-    document.getElementById("bcmute-text").textContent = "Unmute";
-    // if(musicbox.Character.playing){
-    stopAnimation();
-    // }
+    document.getElementById("bcmute-text").textContent = "Music On";
+    
+    // Start playing the music
+    if (this.audio) {
+      this.audio.muted = false;
+      this.audio.play().catch(error => {
+        console.log("Playback failed:", error);
+      });
+    }
+    restartAnimation();
   } else {
-    this.audio.muted = false;
+    // Music On -> Off
     mute_config = 0;
     icon.classList.remove("fa-volume-high");
     icon.classList.add("fa-volume-xmark");
-    document.getElementById("bcmute-text").textContent = "Mute";
-    // if(musicbox.Character.playing){
-    restartAnimation();
-    // }
+    document.getElementById("bcmute-text").textContent = "Music Off";
+    
+    // Stop the music
+    if (this.audio) {
+      this.audio.muted = true;
+      this.audio.pause();
+    }
+    stopAnimation();
   }
 });
 

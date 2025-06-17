@@ -297,24 +297,23 @@ function stop() {
 }
 
 function toggleInit() {
-
   if (running) {
-
     stop();
     btn.textContent = 'start';
     needle.angle = 0;
-
+    range.style.pointerEvents = 'auto'; // Enable range slider
   } else if (!running) {
-
     run();
     btn.textContent = 'stop';
+    range.style.pointerEvents = 'none'; // Disable range slider
   }
 }
 
 btn.addEventListener('click', toggleInit);
 
 range.addEventListener('mousemove', event => {
-
+  if (running) return; // Don't allow tempo changes while running
+  
   let slider = event.target.children[0],
   cursorPos = Math.floor((event.clientY - 130) / 10) * 10 - 6,
   bpm = Math.floor((event.clientY - 130) / 10) * 5 + 20;
@@ -332,18 +331,17 @@ range.addEventListener('mousemove', event => {
     event.target.style.cursor = '-moz-grabbing';
     event.target.style.cursor = 'grabbing';
     needle.bpm = bpm;
-
   } else {
     slider.style.borderRightColor = 'red';
   }
 });
 
 range.addEventListener('mousedown', () => {
+  if (running) return; // Don't allow tempo changes while running
   mouseDown = true;
-  toggleInit();
 });
 
 range.addEventListener('mouseup', () => {
+  if (running) return; // Don't allow tempo changes while running
   mouseDown = false;
-  toggleInit();
 });
