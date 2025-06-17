@@ -115,6 +115,18 @@ musicbox.Carousel.prototype.next = function () {
   var index = this.activeChildIndex + 1;
   index %= this.children.length;
 
+  // Stop music and animations
+  if (this.audio) {
+    this.audio.pause();
+    this.audio.currentTime = 0; // Reset to beginning
+  }
+  stopAnimation();
+  
+  // Reset tempo to Moderato (BPM 100)
+  document.getElementById("BPMnumber").innerHTML = "100";
+  document.getElementById("tempoSelect").value = "Moderato";
+  changeDescription(100);
+  
   this.setActive(index);
   selectedCharacter = (selectedCharacter + 1) % 4;
 };
@@ -124,6 +136,18 @@ musicbox.Carousel.prototype.prev = function () {
   if (index < 0) {
     index += this.children.length;
   }
+
+  // Stop music and animations
+  if (this.audio) {
+    this.audio.pause();
+    this.audio.currentTime = 0; // Reset to beginning
+  }
+  stopAnimation();
+  
+  // Reset tempo to Moderato (BPM 100)
+  document.getElementById("BPMnumber").innerHTML = "100";
+  document.getElementById("tempoSelect").value = "Moderato";
+  changeDescription(100);
 
   this.setActive(index);
   selectedCharacter = (selectedCharacter + 3) % 4;
@@ -2995,3 +3019,10 @@ function restartAnimation() {
     wave.style.animation = ""; // Re-apply animation
   });
 }
+
+// Set default tempo to Moderato (BPM 100) on page load
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById("BPMnumber").innerHTML = "100";
+  document.getElementById("tempoSelect").value = "Moderato";
+  changeDescription(100);
+});
