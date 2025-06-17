@@ -2407,9 +2407,11 @@ function placeBPM() {
   selectedSong = document.getElementById("songSelect").value;
   songBPM = bpmArray[selectedCharacter][selectedSong - 1];
   songDelay = delayArray[selectedCharacter][selectedSong - 1];
+  songCut = currentTimeArray[selectedCharacter][selectedSong - 1];
 
   document.getElementById("songBPM").value = songBPM;
   document.getElementById("songDelay").value = songDelay;
+  document.getElementById("songCut").value = songCut;
   // const songBPM = bpmArray[musicbox.MultiSequencer.activeSequencerIndex][selectedSong - 1];
 }
 
