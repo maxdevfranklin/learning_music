@@ -114,13 +114,6 @@ musicbox.Carousel.prototype.grabMove = function (x) {
 musicbox.Carousel.prototype.next = function () {
   var index = this.activeChildIndex + 1;
   index %= this.children.length;
-
-  // Stop music and animations
-  if (this.audio) {
-    this.audio.pause();
-    this.audio.currentTime = 0; // Reset to beginning
-  }
-  stopAnimation();
   
   // Reset tempo to Moderato (BPM 100)
   document.getElementById("BPMnumber").innerHTML = "100";
@@ -129,6 +122,13 @@ musicbox.Carousel.prototype.next = function () {
   
   this.setActive(index);
   selectedCharacter = (selectedCharacter + 1) % 4;
+  
+  // If running, pause after 10ms
+  if (running) {
+    setTimeout(() => {
+      document.getElementById("init").click();
+    }, 100);
+  }
 };
 
 musicbox.Carousel.prototype.prev = function () {
@@ -136,13 +136,6 @@ musicbox.Carousel.prototype.prev = function () {
   if (index < 0) {
     index += this.children.length;
   }
-
-  // Stop music and animations
-  if (this.audio) {
-    this.audio.pause();
-    this.audio.currentTime = 0; // Reset to beginning
-  }
-  stopAnimation();
   
   // Reset tempo to Moderato (BPM 100)
   document.getElementById("BPMnumber").innerHTML = "100";
@@ -151,6 +144,13 @@ musicbox.Carousel.prototype.prev = function () {
 
   this.setActive(index);
   selectedCharacter = (selectedCharacter + 3) % 4;
+  
+  // If running, pause after 10ms
+  if (running) {
+    setTimeout(() => {
+      document.getElementById("init").click();
+    }, 100);
+  }
 };
 
 musicbox.Carousel.prototype.update = function () {
@@ -2809,23 +2809,25 @@ function stop() {
   needle.init_display();
   window.cancelAnimationFrame(animator);
   
-  // Store current state before stopping
+  // Stop audio
   const bcAudio = document.getElementById("bcAudio");
   if (bcAudio) {
-    wasAudioPlaying = !bcAudio.paused && !bcAudio.muted;
     bcAudio.pause();
+    bcAudio.currentTime = 0;
   }
   
-  // Store character animation state
+  // Stop character animation
   if (typeof tempCharacter !== 'undefined' && tempCharacter) {
-    wasCharacterPlaying = !tempCharacter.paused;
     tempCharacter.pause();
   }
   
-  // Store wave animation state
-  const waves = document.querySelectorAll(".parallax > use");
-  wasWavesAnimating = waves.length > 0 && waves[0].style.animation !== "none";
+  // Stop wave animations
   stopAnimation();
+  
+  // Stop Tone.js transport
+  if (Tone.Transport.state === "started") {
+    Tone.Transport.stop();
+  }
 }
 
 function toggleInit() {
