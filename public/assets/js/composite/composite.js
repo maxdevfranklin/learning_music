@@ -462,7 +462,7 @@ async function playMusic(startIndex = 0) {
       syncScrollX(noteArea, cursor);
     }, 6000 / (songOptions.tempo * 2));
 
-    await delay(60000 / (songOptions.tempo * 2));
+    await delay(60000 / (songOptions.tempo));
   }
 
   if (!stopRequested && isPlaying) {
