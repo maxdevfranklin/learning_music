@@ -1124,10 +1124,10 @@ var instrumentTonalButton = new InstrumentToggle(bottomLeft, [
     name: "Piano",
     audioPath: "piano",
   },
-  {
-    name: "Woodwind",
-    audioPath: "woodwind",
-  },
+  // {
+  //   name: "Woodwind",
+  //   audioPath: "woodwind",
+  // },
   {
     name: "Synth",
     audioPath: "synth",
