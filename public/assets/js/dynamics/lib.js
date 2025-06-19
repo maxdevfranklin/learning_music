@@ -152,7 +152,6 @@ musicbox.Carousel.prototype.next = function () {
   isStart = 0; // Reset the start state
   this.setActive(index);
   selectedCharacter = (selectedCharacter + 1) % 4;
-  placeBPM
 };
 
 musicbox.Carousel.prototype.prev = function () {
@@ -168,7 +167,6 @@ musicbox.Carousel.prototype.prev = function () {
   isStart = 0; // Reset the start state
   this.setActive(index);
   selectedCharacter = (selectedCharacter + 3) % 4;
-  placeBPM();
 };
 
 musicbox.Carousel.prototype.update = function () {
