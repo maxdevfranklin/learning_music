@@ -896,12 +896,12 @@ musicbox.MultiSequencer = function (sequencers) {
 
         const row_array = this.activeSequencerIndex;
         const column_array = randomIndex;
-        this.audio.playbackRate = document.getElementById("songBPM").value;
-        // this.audio.playbackRate = bpmArray[this.activeSequencerIndex][0];
+        // this.audio.playbackRate = document.getElementById("songBPM").value;
+        this.audio.playbackRate = bpmArray[this.activeSequencerIndex][0];
 
         const startAndLoopAudio = () => {
-          this.audio.currentTime = document.getElementById("songCut").value;
-          // this.audio.currentTime = currentTimeArray[this.activeSequencerIndex][0];
+          // this.audio.currentTime = document.getElementById("songCut").value;
+          this.audio.currentTime = currentTimeArray[this.activeSequencerIndex][0];
           this.audio.play();
       
           // After 30 seconds, stop and restart
@@ -915,8 +915,8 @@ musicbox.MultiSequencer = function (sequencers) {
         // Start after optional delay
         this.loopTimeout = setTimeout(() => {
           startAndLoopAudio();
-        }, document.getElementById("songDelay").value);
-        // }, delayArray[this.activeSequencerIndex][0]);
+        // }, document.getElementById("songDelay").value);
+        }, delayArray[this.activeSequencerIndex][0]);
           
       }
       if(!this.playing){
@@ -2398,22 +2398,22 @@ function resetDynamics() {
   });
 }
 
-document.getElementById("songSelect").addEventListener("change", function () {
-  placeBPM();
-});
+// document.getElementById("songSelect").addEventListener("change", function () {
+//   placeBPM();
+// });
 
-placeBPM();
-function placeBPM() {
-  selectedSong = document.getElementById("songSelect").value;
-  songBPM = bpmArray[selectedCharacter][selectedSong - 1];
-  songDelay = delayArray[selectedCharacter][selectedSong - 1];
-  songCut = currentTimeArray[selectedCharacter][selectedSong - 1];
+// placeBPM();
+// function placeBPM() {
+//   selectedSong = document.getElementById("songSelect").value;
+//   songBPM = bpmArray[selectedCharacter][selectedSong - 1];
+//   songDelay = delayArray[selectedCharacter][selectedSong - 1];
+//   songCut = currentTimeArray[selectedCharacter][selectedSong - 1];
 
-  document.getElementById("songBPM").value = songBPM;
-  document.getElementById("songDelay").value = songDelay;
-  document.getElementById("songCut").value = songCut;
-  // const songBPM = bpmArray[musicbox.MultiSequencer.activeSequencerIndex][selectedSong - 1];
-}
+//   document.getElementById("songBPM").value = songBPM;
+//   document.getElementById("songDelay").value = songDelay;
+//   document.getElementById("songCut").value = songCut;
+//   // const songBPM = bpmArray[musicbox.MultiSequencer.activeSequencerIndex][selectedSong - 1];
+// }
 
 
 //# sourceMappingURL=sourcemaps/lib.js.map
