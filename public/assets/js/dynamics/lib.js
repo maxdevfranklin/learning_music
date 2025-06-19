@@ -152,7 +152,6 @@ musicbox.Carousel.prototype.next = function () {
   isStart = 0; // Reset the start state
   this.setActive(index);
   selectedCharacter = (selectedCharacter + 1) % 4;
-  placeBPM
 };
 
 musicbox.Carousel.prototype.prev = function () {
@@ -168,7 +167,6 @@ musicbox.Carousel.prototype.prev = function () {
   isStart = 0; // Reset the start state
   this.setActive(index);
   selectedCharacter = (selectedCharacter + 3) % 4;
-  placeBPM();
 };
 
 musicbox.Carousel.prototype.update = function () {
@@ -890,8 +888,8 @@ musicbox.MultiSequencer = function (sequencers) {
         let randomIndex = 1;
         if(this.activeSequencerIndex == 1)  randomIndex = Math.floor(Math.random() * 2);
 
-        this.audio.src = `/assets/music/dynamics/${this.activeSequencerIndex + 1}/${document.getElementById("songSelect").value}.mp3`;
-        // this.audio.src = `/assets/music/dynamics/${this.activeSequencerIndex + 1}/1.mp3`;
+        // this.audio.src = `/assets/music/dynamics/${this.activeSequencerIndex + 1}/${document.getElementById("songSelect").value}.mp3`;
+        this.audio.src = `/assets/music/dynamics/${this.activeSequencerIndex + 1}/1.mp3`;
 
 
         const row_array = this.activeSequencerIndex;
