@@ -37,6 +37,10 @@ app.get("/songmaker", (req, res) => {
   res.sendFile(path.join(__dirname, "songmaker.html"));
 });
 
+app.get("/rhythm", (req, res) => {
+  res.sendFile(path.join(__dirname, "rhythm.html"));
+});
+
 // Set the port to listen on
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
