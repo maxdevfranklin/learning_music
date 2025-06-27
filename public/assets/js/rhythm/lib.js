@@ -2379,7 +2379,7 @@ musicbox.config.conga.characterSmall = {
   eyes: {
     position: {
       x: 0,
-      y: -105,
+      y: -165,
     },
     scale: 0.79,
   },
@@ -2433,18 +2433,18 @@ musicbox.config.conga.characterSmall = {
   },
 
   face: {
-    texture: "texture/slices_bird-little-face.png",
+    texture: "texture/slices_dog-little-face.png",
     position: { x: -0, y: -80 },
   },
 
   body: {
-    texture: "texture/slices_bird-little-body.png",
+    texture: "texture/slices_dog-little-body.png",
     position: { x: 160, y: 200 },
   },
 
   legs: {
-    texture: "texture/slices_bird-little-legs.png",
-    position: { x: 160, y: 200 },
+    texture: "texture/slices_dog-little-legs.png",
+    position: { x: 160, y: 220 },
   },
 };
 
@@ -2592,7 +2592,7 @@ musicbox.config.timpani.characterSmall = {
   eyes: {
     position: {
       x: 0,
-      y: -195,
+      y: -210,
     },
     scale: 0.79,
     color: 0x100d11,
@@ -2608,7 +2608,7 @@ musicbox.config.timpani.characterSmall = {
   },
 
   face: {
-    texture: "texture/slices_monkey-little-face.png",
+    texture: "texture/slices_pig-little-face.png",
     position: { x: 0, y: -170 },
   },
 
@@ -2618,7 +2618,7 @@ musicbox.config.timpani.characterSmall = {
   },
 
   armLeft: {
-    texture: "texture/slices_timpani-little-arm-left.png",
+    texture: "texture/slices_pig-little-arm-left.png",
     position: { x: 0, y: 0 },
     animation: {
       rotation: {
@@ -2640,7 +2640,7 @@ musicbox.config.timpani.characterSmall = {
   },
 
   armRight: {
-    texture: "texture/slices_timpani-little-arm-right.png",
+    texture: "texture/slices_pig-little-arm-right.png",
     position: { x: 58, y: 0 },
     animation: {
       rotation: {
@@ -2662,12 +2662,12 @@ musicbox.config.timpani.characterSmall = {
   },
 
   body: {
-    texture: "texture/slices_monkey-little-body.png",
+    texture: "texture/slices_pig-little-body.png",
     position: { x: 120, y: 135 },
   },
 
   legs: {
-    texture: "texture/slices_monkey-little-legs.png",
+    texture: "texture/slices_pig-little-legs.png",
     position: { x: 125, y: 120 },
   },
 };
