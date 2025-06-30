@@ -1,9 +1,9 @@
 var musicbox = {};
 musicbox.config = {};
-musicbox.config.timpani = {};
-musicbox.config.kit = {};
 musicbox.config.woodblock = {};
 musicbox.config.conga = {};
+musicbox.config.triangle = {};
+musicbox.config.cymbals = {};
 let mute_config = 0;
 let anim_mute_config = 1;
 let tempCharacter = null;
@@ -38,133 +38,7 @@ musicbox.Animation.prototype.at = function (t, dim) {
 
   return aaf.utils.math.lerp(frameLow, frameHigh, l);
 };
-musicbox.Carousel = function (opts) {
-  opts = aaf.utils.defaults(opts, {
-    children: [],
-    childWidth: 300,
-    restEasing: 0.145,
-    grabEasing: 1,
-  });
 
-  this.container = new PIXI.Container();
-  this.children = opts.children;
-  //this.childWidth = opts.childWidth;
-
-  this.grabEasing = opts.grabEasing;
-  this.restEasing = opts.restEasing;
-
-  this.easing = this.restEasing;
-
-  this.grabbed = false;
-
-  this.grabTarget = 0;
-
-  for (var i = 0, l = this.children.length; i < l; i++) {
-    var child = this.children[i];
-    this.container.addChild(child);
-  }
-
-  this.nextButton = document.createElement("div");
-  this.nextButton.className = "puck-button next";
-
-  this.prevButton = document.createElement("div");
-  this.prevButton.className = "puck-button prev";
-  container.appendChild(this.nextButton);
-  container.appendChild(this.prevButton);
-
-  this.setChildWidth(opts.childWidth);
-
-  this.setActive(0);
-};
-
-musicbox.Carousel.prototype.setChildWidth = function (w) {
-  this.childWidth = w;
-
-  for (var i = 0, l = this.children.length; i < l; i++) {
-    var child = this.children[i];
-    child.position.x = i * this.childWidth;
-  }
-
-  this.setActive(this.activeChildIndex);
-  this.container.position.x = this.targetXPosition;
-};
-
-musicbox.Carousel.prototype.setActive = function (index) {
-  this.activeChildIndex = index;
-  this.targetXPosition = -this.activeChildIndex * this.childWidth;
-
-  // this.prevButton.classList.toggle( 'hidden', this.activeChildIndex === 0 );
-  // this.nextButton.classList.toggle( 'hidden', this.activeChildIndex === this.children.length - 1 );
-};
-
-musicbox.Carousel.prototype.grab = function () {
-  this.grabbed = true;
-  this.easing = this.grabEasing;
-};
-
-musicbox.Carousel.prototype.release = function () {
-  this.grabbed = false;
-  this.easing = this.restEasing;
-};
-
-musicbox.Carousel.prototype.grabMove = function (x) {
-  this.container.position.x = x;
-};
-
-musicbox.Carousel.prototype.next = function () {
-  var index = this.activeChildIndex + 1;
-  index %= this.children.length;
-  
-  // Reset tempo to Moderato (BPM 100)
-  // document.getElementById("BPMnumber").innerHTML = "100";
-  // document.getElementById("tempoSelect").value = "Moderato";
-  changeDescription(100);
-  
-  this.setActive(index);
-  selectedCharacter = (selectedCharacter + 1) % 4;
-  
-  // If running, pause after 10ms
-  if (running) {
-    setTimeout(() => {
-      document.getElementById("init").click();
-    }, 100);
-  }
-};
-
-musicbox.Carousel.prototype.prev = function () {
-  var index = this.activeChildIndex - 1;
-  if (index < 0) {
-    index += this.children.length;
-  }
-  
-  // Reset tempo to Moderato (BPM 100)
-  // document.getElementById("BPMnumber").innerHTML = "100";
-  // document.getElementById("tempoSelect").value = "Moderato";
-  changeDescription(100);
-
-  this.setActive(index);
-  selectedCharacter = (selectedCharacter + 3) % 4;
-  
-  // If running, pause after 10ms
-  if (running) {
-    setTimeout(() => {
-      document.getElementById("init").click();
-    }, 100);
-  }
-};
-
-musicbox.Carousel.prototype.update = function () {
-  var target = this.grabbed ? this.grabTarget : this.targetXPosition;
-
-  var delta = target - this.container.position.x;
-  var ad = Math.abs(delta);
-
-  if (ad > 0 && ad < 1) {
-    this.container.position.x = target;
-  } else {
-    this.container.position.x += delta * this.easing;
-  }
-};
 musicbox.Character = function (opts) {
   aaf.utils.Events.mixTo(this);
 
@@ -808,8 +682,8 @@ musicbox.EasyPIXI.prototype.render = function () {
 };
 musicbox.MultiSequencer = function (sequencers) {
   this.sequencers = [];
-  this.activeSequencerIndex = 0;
-  this.activeSequencer = undefined;
+  // this.activeSequencerIndex = 0;
+  // this.activeSequencer = undefined;
 
   this.domElement = document.createElement("div");
   this.domElement.className = "multi-sequencer";
@@ -817,56 +691,13 @@ musicbox.MultiSequencer = function (sequencers) {
   for (var i = 0, l = sequencers.length; i < l; i++) {
     var sequencer = sequencers[i];
     sequencer.active = false;
+    sequencer.index = i;
+    sequencer.parentMultiSequencer = this;
     this.sequencers.push(sequencer);
     // this.domElement.appendChild( sequencer.domElement );
   }
 
-  this.setActiveSequencer(this.sequencers[0]);
-
-  this.playPause = document.createElement("button");
-  this.playPause.className = "puck-button play-pause";
-
-  this.playPause.addEventListener(
-    "click",
-    function () {
-      // ios needs Transport.start() in a touch event.
-
-      if (!this.transportStarted) {
-        this.transportStarted = true;
-        Tone.Transport.swing = aaf.common.url.number("swing", 0.0);
-        // Tone.Transport.start();
-        // just play it reaaaalllly quiet ( ios hack )
-        this.activeSequencer.triggerSample(2, 0.001);
-      }
-
-      if (!this.audio) {
-        this.audio = document.getElementById("bcAudio");
-        this.audio.loop = true;
-      }
-      this.playing ? this.pause() : this.play();
-      tempCharacter = this;
-      if (this.playing) {
-        let randomIndex = Math.floor(Math.random() * 4) + 1;
-        // this.audio.src = `/assets/music/dynamics/${this.activeSequencerIndex + 1}/${randomIndex}.mp3`;
-        this.audio.src = `/assets/music/dynamics/1/5.mp3`;
-        // this.audio.playbackRate = bpmArray[this.activeSequencerIndex][randomIndex - 1];
-        this.audio.playbackRate = 1.176477;
-        // let speed = document.getElementById("BPMnumber").innerHTML / 89.9;
-
-        // this.audio.playbackRate = speed;
-        // console.log(this.audio.playbackRate);
-        setTimeout(() => {
-          this.audio.volume = 0.5;
-          this.audio.play();
-        }, 100);
-      }
-      if (!this.playing) {
-        this.audio.pause();
-      }
-    }.bind(this)
-  );
-
-  this.domElement.appendChild(this.playPause);
+  // this.setActiveSequencer(this.sequencers[0]);
 
   this.playing = false;
 
@@ -879,16 +710,16 @@ musicbox.MultiSequencer = function (sequencers) {
   // Train-related properties
   this.trainContainer = null;
   this.placedNotes = {
-    0: [], // Eighth notes - Woodblock
-    1: [], // Quarter notes - Conga  
-    2: [], // Half notes - Timpani
-    3: []  // Whole notes - Woodblock
+    0: [],
+    1: [],
+    2: [],
+    3: [] 
   };
   this.noteTypes = [
-    { name: 'eighth', color: '#FFD700', width: 1, instrument: 'woodblock', character: 'bird' },
-    { name: 'quarter', color: '#FF4444', width: 2, instrument: 'conga', character: 'monster' },
-    { name: 'half', color: '#44FF44', width: 4, instrument: 'timpani', character: 'monkey' },
-    { name: 'whole', color: '#4444FF', width: 8, instrument: 'woodblock', character: 'robot' }
+    { name: 'eighth', color: '#FFD700', width: 1, instrument: 'woodblock', character: 'chicken' },
+    { name: 'quarter', color: '#FF4444', width: 2, instrument: 'conga', character: 'dog' },
+    { name: 'half', color: '#44FF44', width: 4, instrument: 'triangle', character: 'pig' },
+    { name: 'whole', color: '#4444FF', width: 8, instrument: 'cymbals', character: 'crocodile' }
   ];
 };
 
@@ -905,49 +736,52 @@ musicbox.MultiSequencer.prototype.update = function () {
   }
 };
 
-musicbox.MultiSequencer.prototype.setActiveSequencer = function (seq) {
-  var playing = this.playing;
+// musicbox.MultiSequencer.prototype.setActiveSequencer = function (seq) {
+//   var playing = this.playing;
 
-  clearTimeout(this.playTimeout);
+//   clearTimeout(this.playTimeout);
 
-  if (playing) {
-    this.pause(true);
-  }
+//   if (playing) {
+//     this.pause(true);
+//   }
 
-  if (this.activeSequencer) {
-    this.activeSequencer.active = false;
-    this.activeSequencer.domElement.classList.remove("active");
-  } else {
-  this.activeSequencer = seq;
-  this.activeSequencer.domElement.classList.add("active");
-  }
+//   if (this.activeSequencer) {
+//     this.activeSequencer.active = false;
+//     this.activeSequencer.domElement.classList.remove("active");
+//   } else {
+//   this.activeSequencer = seq;
+//   this.activeSequencer.domElement.classList.add("active");
+//   }
 
 
-  if (playing) {
-    this.play();
-  }
+//   if (playing) {
+//     this.play();
+//   }
 
-  var prevIndex = this.activeSequencerIndex;
+//   var prevIndex = this.activeSequencerIndex;
 
-  this.fire("change", this.activeSequencerIndex, prevIndex);
+//   this.fire("change", this.activeSequencerIndex, prevIndex);
 
-  this.activeSequencerIndex = this.sequencers.indexOf(seq);
+//   this.activeSequencerIndex = this.sequencers.indexOf(seq);
 
-  this.activeSequencer.active = true;
-};
+//   this.activeSequencer.active = true;
+// };
 
-musicbox.MultiSequencer.prototype.prev = function () {};
+// musicbox.MultiSequencer.prototype.prev = function () {};
 
-musicbox.MultiSequencer.prototype.next = function () {
-  var i = (this.activeSequencerIndex + 1) % this.sequencers.length;
-  this.setActiveSequencer(this.sequencers[i]);
-};
+// musicbox.MultiSequencer.prototype.next = function () {
+//   var i = (this.activeSequencerIndex + 1) % this.sequencers.length;
+//   this.setActiveSequencer(this.sequencers[i]);
+// };
 
 musicbox.MultiSequencer.prototype.play = function () {
   if (anim_mute_config) {
     this.domElement.classList.add("playing");
     this.domElement.classList.remove("suspended");
   }
+  
+  // Show playhead
+  this.showPlayhead();
   
   // Start all sequencers instead of just the active one
   if (this.sequencers) {
@@ -969,6 +803,9 @@ musicbox.MultiSequencer.prototype.pause = function (suspend) {
 
   this.domElement.classList.remove("playing");
 
+  // Hide playhead
+  this.hidePlayhead();
+
   // Stop all sequencers instead of just the active one
   if (this.sequencers) {
     this.sequencers.forEach(sequencer => {
@@ -980,6 +817,11 @@ musicbox.MultiSequencer.prototype.pause = function (suspend) {
 
   this.playing = false;
   this.fire("pause");
+};
+
+musicbox.MultiSequencer.prototype.updatePlayheadFromSequencer = function(sequencerIndex, stepNumber) {
+  // Update playhead position based on the sequencer's step number
+  this.updatePlayheadPosition(stepNumber);
 };
 
 // Train creation and management methods
@@ -999,6 +841,7 @@ musicbox.MultiSequencer.prototype.createRhythmTrain = function(container) {
     border-radius: 15px;
     padding: 20px;
     box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    position: relative;
   `;
 
   // Create train header
@@ -1022,6 +865,7 @@ musicbox.MultiSequencer.prototype.createRhythmTrain = function(container) {
     align-items: flex-start;
     justify-content: center;
     flex-wrap: wrap;
+    position: relative;
   `;
   
   // Create 4 train carriages (groups)
@@ -1030,6 +874,9 @@ musicbox.MultiSequencer.prototype.createRhythmTrain = function(container) {
     carriageContainer.appendChild(carriage);
   }
   this.trainContainer.appendChild(carriageContainer);
+
+  // Create playhead
+  this.createPlayhead();
 
   // Create note palette
   this.createNotePalette();
@@ -1040,6 +887,90 @@ musicbox.MultiSequencer.prototype.createRhythmTrain = function(container) {
   }
 
   return this.trainContainer;
+};
+
+musicbox.MultiSequencer.prototype.createPlayhead = function() {
+  // Create playhead container
+  this.playheadContainer = document.createElement('div');
+  this.playheadContainer.className = 'train-playhead-container';
+  this.playheadContainer.style.cssText = `
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 10;
+  `;
+
+  // Create playhead element
+  this.playhead = document.createElement('div');
+  this.playhead.className = 'train-playhead';
+  this.playhead.style.cssText = `
+    position: absolute;
+    top: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(to bottom, #FFD700, #FFA500);
+    border-radius: 2px;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+    transition: left 0.1s linear;
+    z-index: 11;
+  `;
+
+  // Add playhead to container
+  this.playheadContainer.appendChild(this.playhead);
+  this.trainContainer.appendChild(this.playheadContainer);
+
+  // Initialize playhead position
+  this.updatePlayheadPosition(0);
+};
+
+musicbox.MultiSequencer.prototype.updatePlayheadPosition = function(stepNumber) {
+  if (!this.playhead) return;
+
+  var carriageNum = Math.floor(stepNumber / 8);
+  var currentCarriage = document.getElementsByClassName("train-carriage")[carriageNum];
+
+  if (currentCarriage) {
+    var train = document.getElementsByClassName("rhythm-train-container")[0];
+
+    var noteNum = Math.floor((stepNumber % 8) / 2);
+    var currentNote = currentCarriage.getElementsByClassName("beat-markers")[0].getElementsByClassName("beat")[noteNum];
+  
+    var boundingBox = currentNote.getBoundingClientRect();
+  
+    var position = boundingBox.left;
+    if (stepNumber % 2 == 1) {
+      position = boundingBox.left + (boundingBox.width / 2);
+    }
+  
+    this.playhead.style.left = (position - train.getBoundingClientRect().left) + 'px';
+
+    // Add glow effect when playing
+    if (this.playing) {
+      this.playhead.style.boxShadow = '0 0 15px rgba(255, 215, 0, 1)';
+    } else {
+      this.playhead.style.boxShadow = '0 0 10px rgba(255, 215, 0, 0.8)';
+    }
+  }
+
+};
+
+musicbox.MultiSequencer.prototype.resetPlayhead = function() {
+  this.updatePlayheadPosition(0);
+};
+
+musicbox.MultiSequencer.prototype.hidePlayhead = function() {
+  if (this.playhead) {
+    this.playhead.style.opacity = '0';
+  }
+};
+
+musicbox.MultiSequencer.prototype.showPlayhead = function() {
+  if (this.playhead) {
+    this.playhead.style.opacity = '1';
+  }
 };
 
 musicbox.MultiSequencer.prototype.createTrainCarriage = function(groupIndex) {
@@ -1085,8 +1016,7 @@ musicbox.MultiSequencer.prototype.createTrainCarriage = function(groupIndex) {
 
   // Create 4 rows for this carriage (4 players)
   for (var row = 0; row < 4; row++) {
-    var globalRow = groupIndex * 4 + row;
-    var trainRow = this.createTrainRow(globalRow, groupIndex);
+    var trainRow = this.createTrainRow(row, groupIndex);
     carriage.appendChild(trainRow);
   }
 
@@ -1487,7 +1417,7 @@ musicbox.MultiSequencer.prototype.createNotePalette = function() {
   });
   playButton.addEventListener('click', () => {
     if (window.rhythmGame) {
-      window.rhythmGame.play();
+      this.playing ? window.rhythmGame.stop() : window.rhythmGame.play();
     }
   });
 
@@ -1651,7 +1581,10 @@ musicbox.MultiSequencer.prototype.handleDrop = function(e) {
   e.currentTarget.style.background = '';
   
   const noteType = e.dataTransfer.getData('text/plain');
-  const dropZone = e.currentTarget;
+  var dropZone = e.currentTarget;
+  if (dropZone.classList.contains('placed-note')) {
+    dropZone = dropZone.closest('.drop-zone');
+  }
   const acceptedType = dropZone.dataset.accepts;
   
   if (noteType === acceptedType) {
@@ -1663,10 +1596,13 @@ musicbox.MultiSequencer.prototype.handleDrop = function(e) {
 };
 
 musicbox.MultiSequencer.prototype.handleZoneClick = function(e) {
-  const rect = e.currentTarget.getBoundingClientRect();
+  var dropZone = e.currentTarget;
+  if (dropZone.classList.contains('placed-note')) {
+    dropZone = dropZone.closest('.drop-zone');
+  }
+  const rect = dropZone.getBoundingClientRect();
   const clickX = e.clientX - rect.left;
-  const row = parseInt(e.currentTarget.closest('.train-row').dataset.row);
-  const dropZone = e.currentTarget;
+  const row = parseInt(dropZone.closest('.train-row').dataset.row);
   
   // Check if clicking on an existing note to remove it
   const existingNote = this.findNoteAtPosition(row, clickX, dropZone);
@@ -1677,7 +1613,10 @@ musicbox.MultiSequencer.prototype.handleZoneClick = function(e) {
 
 musicbox.MultiSequencer.prototype.addNoteToRow = function(row, noteType, xPosition) {
   // Find the specific drop zone that was clicked by using the event target
-  const dropZone = event.target; // Use the actual drop zone that received the drop
+  var dropZone = event.target; // Use the actual drop zone that received the drop
+  if (dropZone.classList.contains('placed-note')) {
+    dropZone = dropZone.closest('.drop-zone');
+  }
   const zoneWidth = dropZone.offsetWidth;
   
   // Calculate position as percentage
@@ -1871,13 +1810,13 @@ musicbox.MultiSequencer.prototype.snapToGrid = function(position, noteType) {
   
   switch (noteType) {
     case 'eighth':
-      return Math.round(position / (gridSize / 2)) * (gridSize / 2);
+      return Math.floor(position / (gridSize / 2)) * (gridSize / 2);
     case 'quarter':
-      return Math.round(position / gridSize) * gridSize;
+      return Math.floor(position / gridSize) * gridSize;
     case 'half':
-      return Math.round(position / (gridSize * 2)) * (gridSize * 2);
+      return Math.floor(position / (gridSize * 2)) * (gridSize * 2);
     case 'whole':
-      return Math.round(position / (gridSize * 4)) * (gridSize * 4);
+      return Math.floor(position / (gridSize * 4)) * (gridSize * 4);
     default:
       return position;
   }
@@ -1910,8 +1849,8 @@ musicbox.Sequencer = function (opts) {
     tracks: [],
     randomize: true, // ignored if tracks are provided
 
-    beats: 8,
-    timeSignature: 4,
+    beats: 32,
+    timeSignature: 8,
     bpm: 100,
   });
 
@@ -2002,6 +1941,11 @@ musicbox.Sequencer.prototype.start = function () {
 
   this.stepNumber = 0;
 
+  // Reset playhead position
+  if (this.parentMultiSequencer) {
+    this.parentMultiSequencer.resetPlayhead();
+  }
+
   var intervalLength = (this.beats / this.timeSignature) * 4 + "n";
 
   Tone.Transport.loopEnd = this.beats + "*8n";
@@ -2065,29 +2009,35 @@ musicbox.Sequencer.prototype.onInterval = function (time) {
   // see if there's any active beats at this step number
   var millis = (time - Tone.Transport.currentTime) * 1000;
 
-  for (var i = 0, l = this.tracks.length; i < l; i++) {
-    var track = this.tracks[i];
-    var listener = this.listeners[i];
+  // Update playhead position
+  if (this.parentMultiSequencer) {
+    this.parentMultiSequencer.updatePlayheadFromSequencer(this.index, this.stepNumber);
+  }
 
-    if (track[this.stepNumber]) {
-      this.sampler.triggerAttackRelease(this.trackNames[i], "1n", time);
+  var group = Math.floor(this.stepNumber / this.timeSignature);
+  var position = (this.stepNumber % this.timeSignature) * 12.5;
+  console.log(this.index, this.stepNumber, group, position);
+  var noteIndex = this.parentMultiSequencer.placedNotes[this.index].findIndex(note => note.group == group && note.position == position);
+  if (noteIndex !== -1) {
+    // this.parentMultiSequencer.placedNotes[this.index].splice(noteIndex, 1);
+    this.sampler.triggerAttackRelease(this.trackNames["0"], "1n", time);
 
-      // TODO: create these listeners up front.
-      // var listener = this.animateNote.bind( this, i, this.stepNumber );
+    // TODO: create these listeners up front.
+    var listener = this.animateNote.bind( this, 0, this.stepNumber );
+    // var listener = this.listeners[i];
 
-      // schedule beat animation
-      setTimeout(this.animateNoteListeners[i][this.stepNumber], millis);
-      listener(0.1);
-      
-      // Trigger character animation if rhythm game is available
-      if (window.rhythmGame && window.rhythmGame.pairs) {
-        // Find which character this sequencer corresponds to
-        var sequencerIndex = window.multiSequencer.sequencers.indexOf(this);
-        if (sequencerIndex !== -1 && window.rhythmGame.pairs[sequencerIndex]) {
-          var pair = window.rhythmGame.pairs[sequencerIndex];
-          // Trigger the character animation
-          pair.small(0.085);
-        }
+    // schedule beat animation
+    setTimeout(this.animateNoteListeners[0][this.stepNumber], millis);
+    listener(0.1);
+    
+    // Trigger character animation if rhythm game is available
+    if (window.rhythmGame && window.rhythmGame.pairs) {
+      // Find which character this sequencer corresponds to
+      var sequencerIndex = window.multiSequencer.sequencers.indexOf(this);
+      if (sequencerIndex !== -1 && window.rhythmGame.pairs[sequencerIndex]) {
+        var pair = window.rhythmGame.pairs[sequencerIndex];
+        // Trigger the character animation
+        pair.small(0.085);
       }
     }
   }
@@ -2270,7 +2220,8 @@ musicbox.Sequencer.prototype.triggerSample = function (track, vel) {
   if (vel === undefined) {
     vel = 1;
   }
-  Tone.Transport.clear(this.intervalID);
+  if (!this.playing)
+    Tone.Transport.clear(this.intervalID);
   this.sampler.volume.value = 0; // volume is in dB so this actually unmutes
   this.sampler.triggerAttackRelease(
     this.trackNames[track],
@@ -2398,7 +2349,7 @@ musicbox.config.conga.characterSmall = {
   },
 
   armLeft: {
-    texture: "texture/slices_conga-little-arm-left.png",
+    texture: "texture/slices_dog-little-arm-left.png",
     position: { x: 0, y: 0 },
     animation: {
       rotation: {
@@ -2409,7 +2360,7 @@ musicbox.config.conga.characterSmall = {
   },
 
   stickLeft: {
-    texture: "texture/slices_conga-little-stick-left.png",
+    texture: "texture/slices_dog-little-stick-left.png",
     position: { x: -16, y: 10 },
     behindArms: true,
     animation: {
@@ -2421,7 +2372,7 @@ musicbox.config.conga.characterSmall = {
   },
 
   armRight: {
-    texture: "texture/slices_conga-little-arm-right.png",
+    texture: "texture/slices_dog-little-arm-right.png",
     position: { x: 85, y: 0 },
     back: true,
     animation: {
@@ -2449,8 +2400,8 @@ musicbox.config.conga.characterSmall = {
 };
 
 musicbox.config.conga.sequencer = {
-  beats: 12,
-  timeSignature: 6,
+  // beats: 12,
+  // timeSignature: 6,
   bpm: 40,
 
   samples: [
@@ -2478,7 +2429,7 @@ musicbox.config.conga.sequencer = {
   ],
 };
 
-musicbox.config.kit.characterSmall = {
+musicbox.config.cymbals.characterSmall = {
   position: {
     x: 420,
     y: 320,
@@ -2486,10 +2437,11 @@ musicbox.config.kit.characterSmall = {
 
   eyes: {
     position: {
-      x: 4,
-      y: -135,
+      x: -25,
+      y: -195,
     },
-    scale: 0.79,
+    scale: 1.13,
+    color: 0x100d11,
   },
 
   hitbox: {
@@ -2506,7 +2458,7 @@ musicbox.config.kit.characterSmall = {
   },
 
   armLeft: {
-    texture: "texture/slices_drum-little-arm-left.png",
+    texture: "texture/slices_crocodile-little-arm-left.png",
     position: { x: 0, y: 0 },
     animation: {
       rotation: {
@@ -2517,7 +2469,7 @@ musicbox.config.kit.characterSmall = {
   },
 
   stickRight: {
-    texture: "texture/slices_drum-little-stick-right.png",
+    texture: "texture/slices_crocodile-little-stick-right.png",
     position: { x: 13, y: -11 },
     animation: {
       rotation: {
@@ -2528,8 +2480,8 @@ musicbox.config.kit.characterSmall = {
   },
 
   armRight: {
-    texture: "texture/slices_drum-little-arm-right.png",
-    position: { x: 75, y: 0 },
+    texture: "texture/slices_crocodile-little-arm-right.png",
+    position: { x: 60, y: 0 },
     animation: {
       rotation: {
         file: "json/drum-little-arms.json",
@@ -2539,24 +2491,24 @@ musicbox.config.kit.characterSmall = {
   },
 
   body: {
-    texture: "texture/slices_monster-little-body.png",
+    texture: "texture/slices_crocodile-little-body.png",
     position: { x: 150, y: 180 },
   },
 
-  front: {
-    texture: "texture/slices_bass-drum.png",
-    position: { x: 150, y: 350 },
-  },
+  // front: {
+  //   texture: "texture/slices_bass-drum.png",
+  //   position: { x: 150, y: 350 },
+  // },
 
   legs: {
-    texture: "texture/slices_monster-little-legs.png",
-    position: { x: 150, y: 170 },
+    texture: "texture/slices_crocodile-little-legs.png",
+    position: { x: 120, y: 220 },
   },
 };
 
-musicbox.config.kit.sequencer = {
-  beats: 8,
-  timeSignature: 4,
+musicbox.config.cymbals.sequencer = {
+  // beats: 8,
+  // timeSignature: 4,
   bpm: 40,
 
   samples: [
@@ -2583,7 +2535,7 @@ musicbox.config.kit.sequencer = {
   ],
 };
 
-musicbox.config.timpani.characterSmall = {
+musicbox.config.triangle.characterSmall = {
   position: {
     x: 450,
     y: 470,
@@ -2672,9 +2624,9 @@ musicbox.config.timpani.characterSmall = {
   },
 };
 
-musicbox.config.timpani.sequencer = {
-  beats: 6,
-  timeSignature: 3,
+musicbox.config.triangle.sequencer = {
+  // beats: 6,
+  // timeSignature: 3,
   bpm: 40,
 
   samples: [
@@ -2696,7 +2648,7 @@ musicbox.config.timpani.sequencer = {
   ],
 
   tracks: [
-    [1, 1, 1, 1, 1, 1], // [1,0,0,0,0,0],
+    [0, 0, 0, 0, 0, 0], // [1,0,0,0,0,0],
     // [0,0,0,0,0,0], // [0,1,1,0,1,1],
     // [1,0,0,0,1,0]
   ],
@@ -2722,7 +2674,7 @@ musicbox.config.woodblock.characterSmall = {
   },
 
   armLeft: {
-    texture: "texture/slices_robot-little-arm-left.png",
+    texture: "texture/slices_chicken-little-arm-left.png",
     position: { x: 1, y: 1 },
     animation: {
       rotation: {
@@ -2733,7 +2685,7 @@ musicbox.config.woodblock.characterSmall = {
   },
 
   stickLeft: {
-    texture: "texture/slices_robot-little-stick-left.png",
+    texture: "texture/slices_chicken-little-stick-left.png",
     position: { x: 10, y: 8 },
     behindArms: true,
     animation: {
@@ -2745,7 +2697,7 @@ musicbox.config.woodblock.characterSmall = {
   },
 
   armRight: {
-    texture: "texture/slices_robot-little-arm-right.png",
+    texture: "texture/slices_chicken-little-arm-right.png",
     position: { x: 55, y: 0 },
     animation: {
       rotation: {
@@ -2756,7 +2708,7 @@ musicbox.config.woodblock.characterSmall = {
   },
 
   stickRight: {
-    texture: "texture/slices_robot-little-stick-right.png",
+    texture: "texture/slices_chicken-little-stick-right.png",
     position: { x: -9, y: 15 },
     behindArms: true,
     animation: {
@@ -2768,17 +2720,17 @@ musicbox.config.woodblock.characterSmall = {
   },
 
   body: {
-    texture: "texture/slices_robot-little-body.png",
+    texture: "texture/slices_chicken-little-body.png",
     position: { x: 120, y: 135 },
   },
 
   legs: {
-    texture: "texture/slices_robot-little-legs.png",
+    texture: "texture/slices_chicken-little-legs.png",
     position: { x: 120, y: 118 },
   },
 
   face: {
-    texture: "texture/slices_robot-little-face.png",
+    texture: "texture/slices_chicken-little-face.png",
     position: { x: -5, y: -200 },
   },
 
@@ -2789,8 +2741,8 @@ musicbox.config.woodblock.characterSmall = {
 };
 
 musicbox.config.woodblock.sequencer = {
-  beats: 10,
-  timeSignature: 5,
+  // beats: 10,
+  // timeSignature: 5,
   bpm: 40,
 
   samples: [

@@ -26,18 +26,18 @@ class RhythmGame {
         
         // Note to character mapping
         this.noteToCharacterMap = {
-            'eighth': 'timpani',  // Eighth notes trigger timpani
-            'quarter': 'kit',     // Quarter notes trigger kit
-            'half': 'woodblock',  // Half notes trigger robot (woodblock)
-            'whole': 'conga'      // Whole notes trigger conga
+            'eighth': 'woodblock',
+            'quarter': 'conga',
+            'half': 'triangle',
+            'whole': 'cymbals' 
         };
         
         // Direct character index mapping for reliable triggering
         this.characterIndexMap = {
-            'timpani': 0,    // First character (index 0)
-            'kit': 1,        // Second character (index 1) 
-            'woodblock': 2,  // Third character (index 2)
-            'conga': 3       // Fourth character (index 3)
+            'woodblock': 0,  
+            'conga': 1,
+            'triangle': 2,
+            'cymbals': 3,
         };
         
         this.init();
