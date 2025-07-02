@@ -11,9 +11,62 @@ body {
   overflow-x: auto;
 }
 
+.navbar {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  /* background: linear-gradient(60deg, rgb(72, 49, 163) 0%, rgb(1, 137, 155) 100%); */
+  box-shadow: rgba(0, 0, 0, 0.1) 1px 1px 1px 1px;
+  font-family: sans-serif;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: 5rem;
+}
+
+.nav-title {
+  color: black;
+  font-weight: bold;
+  font-size: 24px;
+}
+
+.nav-btn.back {
+  display: block;
+  background-image: url(../../image/ui_arrow.svg);
+  background-repeat: no-repeat;
+  background-size: 100%;
+  width: 4rem;
+  height: 4rem;
+  cursor: pointer;
+  z-index: 100;
+  background-position: left center;
+  transform: rotate(180deg);
+}
+
+.nav-btn.help {
+  background-color: rgb(255, 194, 52);
+  color: rgb(255, 255, 255);
+  cursor: pointer;
+  text-align: center;
+  display: block;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 30rem;
+  padding: 0.4rem;
+}
+
+.nav-btn:hover {
+  /* background-color: #ece0fe; */
+}
+
 .game-container {
   /* max-width: 1400px; */
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 5rem);
   /* padding: 20px; */
 }
 
@@ -390,6 +443,8 @@ body {
 
 #multi-sequencer-container {
   padding: 20px;
+  max-height: 450px;
+  min-height: 300px;
 }
 
 .note-pair {

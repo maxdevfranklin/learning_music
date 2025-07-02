@@ -151,13 +151,8 @@ class RhythmGame {
         }
 
         // Position characters side by side
-        var spacing = this.calculateCharacterSpacing();
         pairContainers.forEach((container, i) => {
-            if (i == 0) {
-                container.position.x = (spacing - this.calculateCharacterWidth()) / 2;
-            } else {
-                container.position.x = i * spacing * 3 + ((spacing - this.calculateCharacterWidth()) / 2);
-            }
+            container.position.x = i * this.calculateCharacterWidth();
             this.characterContainer.addChild(container);
         });
     }
@@ -228,23 +223,19 @@ class RhythmGame {
         // Get the character that should be triggered for this note type
         const characterKey = this.noteToCharacterMap[noteType];
         
-        console.log(`Note dropped: ${noteType} -> Character: ${characterKey}`);
-        
         if (characterKey && this.pairs) {
             // Use direct character index mapping for reliable triggering
             const characterIndex = this.characterIndexMap[characterKey];
             
-            console.log(`Character index: ${characterIndex}, Pairs length: ${this.pairs.length}`);
-            
             if (characterIndex !== undefined && this.pairs[characterIndex]) {
-                const pair = this.pairs[characterIndex];
+                const pair = this.pairs[Math.abs(characterIndex - 3)];
                 
                 // Trigger the character animation
                 pair.small(0.085); // Trigger the 'small' animation
                 
                 // Play the corresponding sound
-                if (this.multiSequencer && this.multiSequencer.sequencers[characterIndex]) {
-                    const sequencer = this.multiSequencer.sequencers[characterIndex];
+                if (this.multiSequencer && this.multiSequencer.sequencers[Math.abs(characterIndex - 3)]) {
+                    const sequencer = this.multiSequencer.sequencers[Math.abs(characterIndex - 3)];
                     const trackIndex = pair.armToTrackIndex['small'] || 0;
                     sequencer.triggerSample(trackIndex);
                 }
@@ -295,6 +286,8 @@ class RhythmGame {
     calculateCharacterSpacing() {
         var windowWidth = container.offsetWidth;
         var characterWidth = this.calculateCharacterWidth();
+        debugger;
+        console.log(characterWidth);
         var baseSpacing = ((windowWidth - characterWidth * this.CHARACTER_COUNT) / (this.CHARACTER_COUNT + 1)) + characterWidth;
         return baseSpacing;
     }
@@ -303,7 +296,7 @@ class RhythmGame {
         var width = Math.min(850, container.offsetHeight, container.offsetWidth);
         var ratio = (width / 360);
         var canvasHeight = container.offsetHeight;
-        this.scale = 0.5 * ratio;
+        this.scale = 0.4 * ratio;
 
         this.pixi.setSize(container.offsetWidth, canvasHeight);
         this.pixi.renderer.view.style.top = '0px';

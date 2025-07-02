@@ -1,9 +1,9 @@
 var musicbox = {};
 musicbox.config = {};
-musicbox.config.woodblock = {};
-musicbox.config.conga = {};
-musicbox.config.triangle = {};
 musicbox.config.cymbals = {};
+musicbox.config.triangle = {};
+musicbox.config.conga = {};
+musicbox.config.woodblock = {};
 let mute_config = 0;
 let anim_mute_config = 1;
 let tempCharacter = null;
@@ -914,13 +914,15 @@ musicbox.MultiSequencer.prototype.createPlayhead = function() {
     background: linear-gradient(to bottom, #FFD700, #FFA500);
     border-radius: 2px;
     box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
-    transition: left 0.1s linear;
+    transition: left 0.3s linear;
+    visibility: none;
     z-index: 11;
   `;
 
   // Add playhead to container
   this.playheadContainer.appendChild(this.playhead);
   this.trainContainer.appendChild(this.playheadContainer);
+  this.hidePlayhead();
 
   // Initialize playhead position
   this.updatePlayheadPosition(0);
@@ -1204,7 +1206,7 @@ musicbox.MultiSequencer.prototype.startTrainAnimation = function() {
   // Add wheel rotation animation
   wheels.forEach((wheel, index) => {
     wheel.style.animation = `wheelRotate 1s linear infinite`;
-    wheel.style.animationDelay = `${index * 0.1}s`;
+    // wheel.style.animationDelay = `${index * 0.1}s`;
   });
   
   // Add connector glow animation
@@ -1519,9 +1521,9 @@ musicbox.MultiSequencer.prototype.createNotePalette = function() {
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      color: white;
+      color: black;
       font-weight: bold;
-      font-size: 16px;
+      font-size: 20px;
       transition: transform 0.2s;
       box-shadow: 0 2px 4px rgba(0,0,0,0.3);
     `;
@@ -1529,12 +1531,24 @@ musicbox.MultiSequencer.prototype.createNotePalette = function() {
     // Add note symbol
     var symbol = '';
     switch (noteType.name) {
-      case 'eighth': symbol = '♫♫'; break;
-      case 'quarter': symbol = '♩'; break;
-      case 'half': symbol = '♪'; break;
-      case 'whole': symbol = '○'; break;
+      case 'eighth': 
+        symbol = '♪'; 
+        noteElement.style.width = "40px";
+        break;
+      case 'quarter': 
+        symbol = '♩'; 
+        noteElement.style.width = "80px";
+        break;
+      case 'half': 
+        symbol = '𝅗𝅥'; 
+        noteElement.style.width = "160px";
+        break;
+      case 'whole': 
+        symbol = '○'; 
+        noteElement.style.width = "320px";
+        break;
     }
-    noteElement.innerHTML = symbol + '<div style="font-size: 10px; margin-top: 2px;">' + noteType.name + '</div>';
+    noteElement.innerHTML = symbol + '<div style="font-size: 13px; margin-top: 2px;">' + noteType.name + '</div>';
     
     noteElement.addEventListener('dragstart', this.handleDragStart.bind(this));
     noteElement.addEventListener('dragend', this.handleDragEnd.bind(this));
@@ -1690,9 +1704,9 @@ musicbox.MultiSequencer.prototype.renderNote = function(noteData, dropZone) {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: black;
     font-weight: bold;
-    font-size: 12px;
+    font-size: 25px;
     cursor: pointer;
     z-index: 1;
     border: 1px solid rgba(255,255,255,0.3);
@@ -1701,9 +1715,9 @@ musicbox.MultiSequencer.prototype.renderNote = function(noteData, dropZone) {
   // Add note symbol
   let symbol = '';
   switch (noteData.type) {
-    case 'eighth': symbol = '♫'; break;
+    case 'eighth': symbol = '♪'; break;
     case 'quarter': symbol = '♩'; break;
-    case 'half': symbol = '♪'; break;
+    case 'half': symbol = '𝅗𝅥'; break;
     case 'whole': symbol = '○'; break;
   }
   noteElement.textContent = symbol;
@@ -1851,7 +1865,7 @@ musicbox.Sequencer = function (opts) {
 
     beats: 32,
     timeSignature: 8,
-    bpm: 100,
+    bpm: 50,
   });
 
   this.samples = opts.samples;
@@ -1951,7 +1965,7 @@ musicbox.Sequencer.prototype.start = function () {
   Tone.Transport.loopEnd = this.beats + "*8n";
 
   Tone.Transport.clear(this.intervalID);
-  this.intervalID = Tone.Transport.scheduleRepeat(this.onInterval, "8n");
+  this.intervalID = Tone.Transport.scheduleRepeat(this.onInterval, "16n");
   this.time = 0;
 
   this.startTime = Tone.context.currentTime;
@@ -2016,8 +2030,7 @@ musicbox.Sequencer.prototype.onInterval = function (time) {
 
   var group = Math.floor(this.stepNumber / this.timeSignature);
   var position = (this.stepNumber % this.timeSignature) * 12.5;
-  console.log(this.index, this.stepNumber, group, position);
-  var noteIndex = this.parentMultiSequencer.placedNotes[this.index].findIndex(note => note.group == group && note.position == position);
+  var noteIndex = this.parentMultiSequencer.placedNotes[Math.abs(this.index - 3)].findIndex(note => note.group == group && note.position == position);
   if (noteIndex !== -1) {
     // this.parentMultiSequencer.placedNotes[this.index].splice(noteIndex, 1);
     this.sampler.triggerAttackRelease(this.trackNames["0"], "1n", time);
@@ -2333,6 +2346,7 @@ musicbox.config.conga.characterSmall = {
       y: -165,
     },
     scale: 0.79,
+    color: 0x100d11,
   },
 
   hitbox: {
@@ -2737,6 +2751,7 @@ musicbox.config.woodblock.characterSmall = {
   eyes: {
     position: { x: 0, y: -200 },
     scale: 0.79,
+    color: 0x100d11,
   },
 };
 
