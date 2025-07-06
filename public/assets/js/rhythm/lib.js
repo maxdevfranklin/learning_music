@@ -837,7 +837,7 @@ musicbox.MultiSequencer.prototype.createRhythmTrain = function(container) {
   this.trainContainer.className = 'rhythm-train-container';
   this.trainContainer.style.cssText = `
     width: 100%;
-    background: linear-gradient(45deg, #8B4513, #A0522D);
+    background: lightslategrey;
     border-radius: 15px;
     padding: 20px;
     box-shadow: 0 8px 16px rgba(0,0,0,0.3);
@@ -914,7 +914,7 @@ musicbox.MultiSequencer.prototype.createPlayhead = function() {
     background: linear-gradient(to bottom, #FFD700, #FFA500);
     border-radius: 2px;
     box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
-    transition: left 0.3s linear;
+    transition: left 0.444444s linear;
     visibility: none;
     z-index: 11;
   `;
@@ -1351,6 +1351,7 @@ musicbox.MultiSequencer.prototype.createTrainRow = function(row, groupIndex) {
     right: 0;
     bottom: 0;
     cursor: pointer;
+    background-color: ${this.noteTypes[row % 4].color}22;
   `;
 
   // Add event listeners
@@ -1401,7 +1402,7 @@ musicbox.MultiSequencer.prototype.createNotePalette = function() {
   playButton.textContent = '▶️ Play';
   playButton.style.cssText = `
     padding: 10px 15px;
-    background: #4CAF50;
+    background: grey;
     color: white;
     border: none;
     border-radius: 8px;
@@ -1411,12 +1412,12 @@ musicbox.MultiSequencer.prototype.createNotePalette = function() {
     transition: background-color 0.3s;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   `;
-  playButton.addEventListener('mouseover', () => {
-    playButton.style.background = '#45a049';
-  });
-  playButton.addEventListener('mouseout', () => {
-    playButton.style.background = '#4CAF50';
-  });
+  // playButton.addEventListener('mouseover', () => {
+  //   playButton.style.background = '#45a049';
+  // });
+  // playButton.addEventListener('mouseout', () => {
+  //   playButton.style.background = '#4CAF50';
+  // });
   playButton.addEventListener('click', () => {
     if (window.rhythmGame) {
       this.playing ? window.rhythmGame.stop() : window.rhythmGame.play();
@@ -1430,7 +1431,7 @@ musicbox.MultiSequencer.prototype.createNotePalette = function() {
   stopButton.textContent = '⏹️ Stop';
   stopButton.style.cssText = `
     padding: 10px 15px;
-    background: #f44336;
+    background: grey;
     color: white;
     border: none;
     border-radius: 8px;
@@ -1440,12 +1441,12 @@ musicbox.MultiSequencer.prototype.createNotePalette = function() {
     transition: background-color 0.3s;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   `;
-  stopButton.addEventListener('mouseover', () => {
-    stopButton.style.background = '#da190b';
-  });
-  stopButton.addEventListener('mouseout', () => {
-    stopButton.style.background = '#f44336';
-  });
+  // stopButton.addEventListener('mouseover', () => {
+  //   stopButton.style.background = '#da190b';
+  // });
+  // stopButton.addEventListener('mouseout', () => {
+  //   stopButton.style.background = '#f44336';
+  // });
   stopButton.addEventListener('click', () => {
     if (window.rhythmGame) {
       window.rhythmGame.stop();
@@ -1459,7 +1460,7 @@ musicbox.MultiSequencer.prototype.createNotePalette = function() {
   clearButton.textContent = '🗑️ Clear All';
   clearButton.style.cssText = `
     padding: 10px 15px;
-    background: #ff9800;
+    background: grey;
     color: white;
     border: none;
     border-radius: 8px;
@@ -1469,12 +1470,12 @@ musicbox.MultiSequencer.prototype.createNotePalette = function() {
     transition: background-color 0.3s;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   `;
-  clearButton.addEventListener('mouseover', () => {
-    clearButton.style.background = '#e68900';
-  });
-  clearButton.addEventListener('mouseout', () => {
-    clearButton.style.background = '#ff9800';
-  });
+  // clearButton.addEventListener('mouseover', () => {
+  //   clearButton.style.background = '#e68900';
+  // });
+  // clearButton.addEventListener('mouseout', () => {
+  //   clearButton.style.background = '#ff9800';
+  // });
   clearButton.addEventListener('click', () => {
     if (window.rhythmGame) {
       window.rhythmGame.clearAll();
@@ -1581,18 +1582,19 @@ musicbox.MultiSequencer.prototype.handleDragEnd = function(e) {
 musicbox.MultiSequencer.prototype.handleDragOver = function(e) {
   e.preventDefault();
   e.currentTarget.classList.add('drag-over');
-  e.currentTarget.style.background = 'rgba(255,255,255,0.3)';
+  // e.currentTarget.dataset.background = e.currentTarget.style.backgroundColor;
+  // e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.3)';
 };
 
 musicbox.MultiSequencer.prototype.handleDragLeave = function(e) {
   e.currentTarget.classList.remove('drag-over');
-  e.currentTarget.style.background = '';
+  // e.currentTarget.style.backgroundColor = e.currentTarget.dataset.background;
 };
 
 musicbox.MultiSequencer.prototype.handleDrop = function(e) {
   e.preventDefault();
   e.currentTarget.classList.remove('drag-over');
-  e.currentTarget.style.background = '';
+  // e.currentTarget.style.background = '';
   
   const noteType = e.dataTransfer.getData('text/plain');
   var dropZone = e.currentTarget;
@@ -1696,8 +1698,8 @@ musicbox.MultiSequencer.prototype.renderNote = function(noteData, dropZone) {
   noteElement.style.cssText = `
     position: absolute;
     top: 2px;
-    left: ${noteData.position}%;
-    width: ${this.getNoteWidth(noteData.type)}%;
+    left: calc(${noteData.position}% + 2px);
+    width: calc(${this.getNoteWidth(noteData.type)}% - 4px);
     height: calc(100% - 4px);
     background: ${this.noteTypes[noteData.row % 4].color};
     border-radius: 3px;
@@ -1709,7 +1711,7 @@ musicbox.MultiSequencer.prototype.renderNote = function(noteData, dropZone) {
     font-size: 25px;
     cursor: pointer;
     z-index: 1;
-    border: 1px solid rgba(255,255,255,0.3);
+    border: 1px solid rgb(50,50,50);
   `;
   
   // Add note symbol
