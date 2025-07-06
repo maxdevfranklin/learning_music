@@ -264,7 +264,7 @@ class RhythmGame {
         });
 
         // Resize handler
-        window.addEventListener('resize', () => this.resize(), false);
+        // window.addEventListener('resize', () => this.resize(), false);
         this.resize();
     }
 
@@ -279,29 +279,30 @@ class RhythmGame {
     }
 
     calculateCharacterWidth() {
-        var baseRatio = 1.1;
+        var ratio = (container.offsetHeight / 360);
+        var baseRatio = ratio * 0.6;
         return container.offsetHeight / baseRatio;
     }
 
-    calculateCharacterSpacing() {
-        var windowWidth = container.offsetWidth;
-        var characterWidth = this.calculateCharacterWidth();
-        debugger;
-        console.log(characterWidth);
-        var baseSpacing = ((windowWidth - characterWidth * this.CHARACTER_COUNT) / (this.CHARACTER_COUNT + 1)) + characterWidth;
-        return baseSpacing;
-    }
+    // calculateCharacterSpacing() {
+    //     var windowWidth = container.offsetWidth;
+    //     var characterWidth = this.calculateCharacterWidth();
+    //     debugger;
+    //     console.log(characterWidth);
+    //     var baseSpacing = ((windowWidth - characterWidth * this.CHARACTER_COUNT) / (this.CHARACTER_COUNT + 1)) + characterWidth;
+    //     return baseSpacing;
+    // }
 
     resize() {
-        var width = Math.min(850, container.offsetHeight, container.offsetWidth);
-        var ratio = (width / 360);
-        var canvasHeight = container.offsetHeight;
-        this.scale = 0.4 * ratio;
+        var ratio = (container.offsetHeight / 360);
+        this.scale = ratio * 0.5;
 
-        this.pixi.setSize(container.offsetWidth, canvasHeight);
+        this.pixi.setSize(container.offsetWidth, container.offsetHeight);
         this.pixi.renderer.view.style.top = '0px';
 
-        this.characterContainer.position.x = this.calculateCharacterSpacing() / 2;
+        var offsetX = (container.offsetWidth - container.offsetHeight * 3) / 2;
+        this.characterContainer.position.x = offsetX;
+        debugger;
         this.characterContainer.position.y = 0;
         this.characterContainer.scale.set(this.scale);
     }

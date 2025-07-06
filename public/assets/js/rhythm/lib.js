@@ -1537,15 +1537,15 @@ musicbox.MultiSequencer.prototype.createNotePalette = function() {
         break;
       case 'quarter': 
         symbol = '♩'; 
-        noteElement.style.width = "80px";
+        noteElement.style.width = "60px";
         break;
       case 'half': 
         symbol = '𝅗𝅥'; 
-        noteElement.style.width = "160px";
+        noteElement.style.width = "80px";
         break;
       case 'whole': 
         symbol = '○'; 
-        noteElement.style.width = "320px";
+        noteElement.style.width = "100px";
         break;
     }
     noteElement.innerHTML = symbol + '<div style="font-size: 13px; margin-top: 2px;">' + noteType.name + '</div>';
