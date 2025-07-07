@@ -30,20 +30,16 @@
   </head>
   <body>
     <nav class="navbar">
-      <button class="nav-btn" onclick="location.href='/'">← Back</button>
+      <a class="nav-btn back" onclick="location.href='/'"></a>
       <span class="nav-title">Song Maker</span>
-      <div
-        style="
-          display: flex;
-          flex-direction: row;
-          align-items: center;
-          gap: 20px;
-        "
-      >
-        <button class="nav-btn" onclick="location.href='/metronome/help'">
-          Help
-        </button>
-      </div>
+      <a class="nav-btn help" onclick="location.href='/metronome/help'" style="visibility: hidden;">?</a>
+      <!-- <div class="delaygroup">
+        <input
+          type="text"
+          id="setMetronomeDelay"
+          placeholder="Metrnome Delay"
+        />
+      </div> -->
     </nav>
     <div style="width: 100%;">
       <div class="wave-back">

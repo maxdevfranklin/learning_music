@@ -302,7 +302,6 @@ class RhythmGame {
 
         var offsetX = (container.offsetWidth - container.offsetHeight * 3) / 2;
         this.characterContainer.position.x = offsetX;
-        debugger;
         this.characterContainer.position.y = 0;
         this.characterContainer.scale.set(this.scale);
     }
@@ -411,6 +410,7 @@ class RhythmGame {
     }
 
     clearAll() {
+        this.stop();
         if (this.multiSequencer && this.multiSequencer.placedNotes) {
             for (let row = 0; row < 4; row++) {
                 this.multiSequencer.placedNotes[row] = [];

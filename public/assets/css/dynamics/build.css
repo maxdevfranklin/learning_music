@@ -64,20 +64,6 @@ input {
   background: url("../../image/ui_menu.svg") center center no-repeat;
 } */
 
-.navbar {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 20px;
-  background: linear-gradient(60deg, rgb(72, 49, 163) 0%, rgb(1, 137, 155) 100%);
-  box-shadow: 0 0px 6px rgba(0, 0, 0, 0.1);
-  font-family: sans-serif;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
 .song-adjust {
   position: absolute;
   display: flex;
@@ -89,27 +75,55 @@ input {
   top: 100px;
 }
 
+.navbar {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  /* background: linear-gradient(60deg, rgb(72, 49, 163) 0%, rgb(1, 137, 155) 100%); */
+  box-shadow: rgba(0, 0, 0, 0.1) 1px 1px 1px 1px;
+  font-family: sans-serif;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: 5rem;
+}
+
 .nav-title {
-  color: white;
+  color: black;
   font-weight: bold;
   font-size: 24px;
 }
 
-.nav-btn {
-  background-color: #fff;
-  color: rgb(0, 0, 0);
-  border: none;
-  padding: 8px 14px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+.nav-btn.back {
+  background-image: url(../../image/back-arrow.png);
+  display: block;
+  background-repeat: no-repeat;
+  background-size: 100%;
+  width: 4rem;
+  height: 4rem;
   cursor: pointer;
-  font-size: 14px;
-  transition: background 0.3s;
+  z-index: 100;
+  background-color: transparent;
+  background-position: left center;
 }
 
-.nav-btn:hover {
-  background-color: #ece0fe;
+.nav-btn.help {
+  background-color: rgb(255, 194, 52);
+  color: rgb(255, 255, 255);
+  cursor: pointer;
+  text-align: center;
+  display: block;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 30rem;
+  padding: 0.4rem;
 }
+
+/* .nav-btn:hover {
+  background-color: #ece0fe;
+} */
 
 @keyframes blink {
   from {

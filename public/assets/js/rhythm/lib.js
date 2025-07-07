@@ -1351,7 +1351,7 @@ musicbox.MultiSequencer.prototype.createTrainRow = function(row, groupIndex) {
     right: 0;
     bottom: 0;
     cursor: pointer;
-    background-color: ${this.noteTypes[row % 4].color}22;
+    background-color: ${this.noteTypes[row % 4].color}55;
   `;
 
   // Add event listeners
@@ -2478,7 +2478,7 @@ musicbox.config.cymbals.characterSmall = {
     position: { x: 0, y: 0 },
     animation: {
       rotation: {
-        file: "json/drum-little-arms.json",
+        file: "json/crocodile-little-arms.json",
         layer: "C_guy2 armL-rotation",
       },
     },
@@ -2486,10 +2486,11 @@ musicbox.config.cymbals.characterSmall = {
 
   stickRight: {
     texture: "texture/slices_crocodile-little-stick-right.png",
-    position: { x: 13, y: -11 },
+    position: { x: 18, y: -15 },
+    behindArms: true,
     animation: {
       rotation: {
-        file: "json/drum-little-arms.json",
+        file: "json/crocodile-little-arms.json",
         layer: "C_guy2 mallet-rotation",
       },
     },
@@ -2497,10 +2498,10 @@ musicbox.config.cymbals.characterSmall = {
 
   armRight: {
     texture: "texture/slices_crocodile-little-arm-right.png",
-    position: { x: 60, y: 0 },
+    position: { x: 50, y: 3 },
     animation: {
       rotation: {
-        file: "json/drum-little-arms.json",
+        file: "json/crocodile-little-arms.json",
         layer: "C_guy2 armR-rotation",
       },
     },
@@ -2530,7 +2531,7 @@ musicbox.config.cymbals.sequencer = {
   samples: [
     // 'assets/sample/kit-hat.mp3',
     // 'assets/sample/kit-snare.mp3',
-    "assets/sample/kit-tom.mp3",
+    "assets/sample/metallic-drum-splash-decay.wav",
   ],
   symbols: [
     // 'assets/image/ui_drums1.svg',
