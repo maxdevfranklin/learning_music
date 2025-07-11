@@ -821,7 +821,7 @@ musicbox.MultiSequencer.prototype.pause = function (suspend) {
 
 musicbox.MultiSequencer.prototype.updatePlayheadFromSequencer = function(sequencerIndex, stepNumber) {
   // Update playhead position based on the sequencer's step number
-  this.updatePlayheadPosition(stepNumber);
+  this.updatePlayheadPosition(stepNumber + 1);
 };
 
 // Train creation and management methods
@@ -931,8 +931,15 @@ musicbox.MultiSequencer.prototype.createPlayhead = function() {
 musicbox.MultiSequencer.prototype.updatePlayheadPosition = function(stepNumber) {
   if (!this.playhead) return;
 
+  var last = false;
+  if (stepNumber % 32 == 0 && stepNumber != 0) {
+    last = true;
+    console.log("last true");
+    stepNumber = 30;
+  }
   var carriageNum = Math.floor(stepNumber / 8);
   var currentCarriage = document.getElementsByClassName("train-carriage")[carriageNum];
+
 
   if (currentCarriage) {
     var train = document.getElementsByClassName("rhythm-train-container")[0];
@@ -945,6 +952,9 @@ musicbox.MultiSequencer.prototype.updatePlayheadPosition = function(stepNumber) 
     var position = boundingBox.left;
     if (stepNumber % 2 == 1) {
       position = boundingBox.left + (boundingBox.width / 2);
+    }
+    if (last) {
+      position = boundingBox.right;
     }
   
     this.playhead.style.left = (position - train.getBoundingClientRect().left) + 'px';
@@ -1370,7 +1380,7 @@ musicbox.MultiSequencer.prototype.createNotePalette = function() {
   var palette = document.createElement('div');
   palette.className = 'note-palette';
   palette.style.cssText = `
-    margin-top: 10px;
+    margin-top: 25px;
     padding: 15px;
     background: #F5F5DC;
     border-radius: 10px;
@@ -1497,14 +1507,14 @@ musicbox.MultiSequencer.prototype.createNotePalette = function() {
     flex-wrap: wrap;
   `;
 
-  var paletteTitle = document.createElement('h3');
-  paletteTitle.textContent = '🎼 Drag Notes to the Train!';
-  paletteTitle.style.cssText = `
-    margin: auto 0;
-    color: #8B4513;
-    font-size: 18px;
-  `;
-  noteContainer.appendChild(paletteTitle);
+  // var paletteTitle = document.createElement('h3');
+  // paletteTitle.textContent = '🎼 Drag Notes to the Train!';
+  // paletteTitle.style.cssText = `
+  //   margin: auto 0;
+  //   color: #8B4513;
+  //   font-size: 18px;
+  // `;
+  // noteContainer.appendChild(paletteTitle);
 
   this.noteTypes.forEach(function(noteType, index) {
     var noteElement = document.createElement('div');
@@ -1538,15 +1548,15 @@ musicbox.MultiSequencer.prototype.createNotePalette = function() {
         break;
       case 'quarter': 
         symbol = '♩'; 
-        noteElement.style.width = "60px";
+        noteElement.style.width = "80px";
         break;
       case 'half': 
         symbol = '𝅗𝅥'; 
-        noteElement.style.width = "80px";
+        noteElement.style.width = "160px";
         break;
       case 'whole': 
         symbol = '○'; 
-        noteElement.style.width = "100px";
+        noteElement.style.width = "320px";
         break;
     }
     noteElement.innerHTML = symbol + '<div style="font-size: 13px; margin-top: 2px;">' + noteType.name + '</div>';
@@ -1698,8 +1708,8 @@ musicbox.MultiSequencer.prototype.renderNote = function(noteData, dropZone) {
   noteElement.style.cssText = `
     position: absolute;
     top: 2px;
-    left: calc(${noteData.position}% + 2px);
-    width: calc(${this.getNoteWidth(noteData.type)}% - 4px);
+    left: ${noteData.position}%;
+    width: ${this.getNoteWidth(noteData.type)}%;
     height: calc(100% - 4px);
     background: ${this.noteTypes[noteData.row % 4].color};
     border-radius: 3px;
@@ -2531,7 +2541,7 @@ musicbox.config.cymbals.sequencer = {
   samples: [
     // 'assets/sample/kit-hat.mp3',
     // 'assets/sample/kit-snare.mp3',
-    "assets/sample/metallic-drum-splash-decay.wav",
+    "assets/sample/crymbal1.mp3",
   ],
   symbols: [
     // 'assets/image/ui_drums1.svg',
@@ -2647,7 +2657,7 @@ musicbox.config.triangle.sequencer = {
   bpm: 40,
 
   samples: [
-    "assets/sample/timpani-triangle.mp3",
+    "assets/sample/triangle2.mp3",
     // 'assets/sample/timpani-high.mp3',
     // 'assets/sample/timpani-low.mp3'
   ],

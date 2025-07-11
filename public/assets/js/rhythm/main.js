@@ -279,9 +279,10 @@ class RhythmGame {
     }
 
     calculateCharacterWidth() {
-        var ratio = (container.offsetHeight / 360);
+        var baseWidth = container.offsetHeight * 0.7;
+        var ratio = (baseWidth / 360);
         var baseRatio = ratio * 0.6;
-        return container.offsetHeight / baseRatio;
+        return baseWidth / baseRatio;
     }
 
     // calculateCharacterSpacing() {
@@ -295,14 +296,14 @@ class RhythmGame {
 
     resize() {
         var ratio = (container.offsetHeight / 360);
-        this.scale = ratio * 0.5;
+        this.scale = ratio * 0.4;
 
         this.pixi.setSize(container.offsetWidth, container.offsetHeight);
         this.pixi.renderer.view.style.top = '0px';
 
-        var offsetX = (container.offsetWidth - container.offsetHeight * 3) / 2;
+        var offsetX = (container.offsetWidth - container.offsetHeight * 3 / 1.25) / 2;
         this.characterContainer.position.x = offsetX;
-        this.characterContainer.position.y = 0;
+        this.characterContainer.position.y = container.offsetHeight * 0.1;
         this.characterContainer.scale.set(this.scale);
     }
 
