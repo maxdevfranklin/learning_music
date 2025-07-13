@@ -355,6 +355,7 @@ class RhythmGame {
     }
 
     stop() {
+
         if (!this.isPlaying) return;
         
         this.isPlaying = false;
@@ -397,16 +398,16 @@ class RhythmGame {
     }
 
     stopPlayheadAnimation() {
-        const playhead = document.getElementById('playhead');
+        const playhead = document.getElementsByClassName('train-playhead')[0];
         if (playhead) {
-            playhead.style.transition = 'none';
+            playhead.style.left = (document.getElementsByClassName("train-row")[0].getBoundingClientRect().left - document.getElementsByClassName("rhythm-train-container")[0].getBoundingClientRect().left) + 'px';
         }
     }
 
     resetPlayhead() {
-        const playhead = document.getElementById('playhead');
+        const playhead = document.getElementsByClassName('train-playhead')[0];
         if (playhead) {
-            playhead.style.left = '0%';
+            playhead.style.left = (document.getElementsByClassName("train-row")[0].getBoundingClientRect().left - document.getElementsByClassName("rhythm-train-container")[0].getBoundingClientRect().left) + 'px';
         }
     }
 

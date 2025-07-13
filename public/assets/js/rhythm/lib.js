@@ -934,7 +934,6 @@ musicbox.MultiSequencer.prototype.updatePlayheadPosition = function(stepNumber) 
   var last = false;
   if (stepNumber % 32 == 0 && stepNumber != 0) {
     last = true;
-    console.log("last true");
     stepNumber = 30;
   }
   var carriageNum = Math.floor(stepNumber / 8);
@@ -955,6 +954,14 @@ musicbox.MultiSequencer.prototype.updatePlayheadPosition = function(stepNumber) 
     }
     if (last) {
       position = boundingBox.right;
+      
+      setTimeout(() => {
+        this.playhead.style.transition = "none";
+        this.playhead.style.left = (document.getElementsByClassName("train-row")[0].getBoundingClientRect().left - train.getBoundingClientRect().left) + 'px';
+        setTimeout(() => {
+          this.playhead.style.transition = "left 0.444444s linear";
+        }, 5);
+      }, 370);
     }
   
     this.playhead.style.left = (position - train.getBoundingClientRect().left) + 'px';
@@ -2036,7 +2043,7 @@ musicbox.Sequencer.prototype.onInterval = function (time) {
   var millis = (time - Tone.Transport.currentTime) * 1000;
 
   // Update playhead position
-  if (this.parentMultiSequencer) {
+  if (this.parentMultiSequencer && this.index == 0) {
     this.parentMultiSequencer.updatePlayheadFromSequencer(this.index, this.stepNumber);
   }
 
