@@ -1,9 +1,9 @@
 var musicbox = {};
 musicbox.config = {};
-musicbox.config.cymbals = {};
-musicbox.config.triangle = {};
-musicbox.config.conga = {};
 musicbox.config.woodblock = {};
+musicbox.config.conga = {};
+musicbox.config.triangle = {};
+musicbox.config.crymbals = {};
 let mute_config = 0;
 let anim_mute_config = 1;
 let tempCharacter = null;
@@ -719,7 +719,7 @@ musicbox.MultiSequencer = function (sequencers) {
     { name: 'eighth', color: '#FFD700', width: 1, instrument: 'woodblock', character: 'chicken' },
     { name: 'quarter', color: '#FF4444', width: 2, instrument: 'conga', character: 'dog' },
     { name: 'half', color: '#44FF44', width: 4, instrument: 'triangle', character: 'pig' },
-    { name: 'whole', color: '#4444FF', width: 8, instrument: 'cymbals', character: 'crocodile' }
+    { name: 'whole', color: '#4444FF', width: 8, instrument: 'crymbals', character: 'crocodile' }
   ];
 };
 
@@ -1550,23 +1550,23 @@ musicbox.MultiSequencer.prototype.createNotePalette = function() {
     var symbol = '';
     switch (noteType.name) {
       case 'eighth': 
-        symbol = '♪'; 
+        symbol = '<img src="assets/image/eighth-note.png" style="height: 70%"/>'; 
         noteElement.style.width = "40px";
         break;
       case 'quarter': 
-        symbol = '♩'; 
+        symbol = '<img src="assets/image/quarter-note.png" style="height: 70%"/>'; 
         noteElement.style.width = "80px";
         break;
       case 'half': 
-        symbol = '𝅗𝅥'; 
+        symbol = '<img src="assets/image/half-note.png" style="height: 70%"/>'; 
         noteElement.style.width = "160px";
         break;
       case 'whole': 
-        symbol = '○'; 
+        symbol = '<img src="assets/image/whole-note.png" style="height: 50%"/>'; 
         noteElement.style.width = "320px";
         break;
     }
-    noteElement.innerHTML = symbol + '<div style="font-size: 13px; margin-top: 2px;">' + noteType.name + '</div>';
+    noteElement.innerHTML = symbol; // + '<div style="font-size: 13px; margin-top: 2px;">' + noteType.name + '</div>';
     
     noteElement.addEventListener('dragstart', this.handleDragStart.bind(this));
     noteElement.addEventListener('dragend', this.handleDragEnd.bind(this));
@@ -1734,12 +1734,12 @@ musicbox.MultiSequencer.prototype.renderNote = function(noteData, dropZone) {
   // Add note symbol
   let symbol = '';
   switch (noteData.type) {
-    case 'eighth': symbol = '♪'; break;
-    case 'quarter': symbol = '♩'; break;
-    case 'half': symbol = '𝅗𝅥'; break;
-    case 'whole': symbol = '○'; break;
+    case 'eighth': symbol   = '<img src="assets/image/eighth-note.png" style="height: 70%"/>'; break;
+    case 'quarter': symbol  = '<img src="assets/image/quarter-note.png" style="height: 70%" />'; break;
+    case 'half': symbol     = '<img src="assets/image/half-note.png" style="height: 70%" />'; break;
+    case 'whole': symbol    = '<img src="assets/image/whole-note.png" style="height: 50%" />'; break;
   }
-  noteElement.textContent = symbol;
+  noteElement.innerHTML = symbol;
   
   // Add click to remove functionality
   noteElement.addEventListener('click', (e) => {
@@ -1885,12 +1885,15 @@ musicbox.Sequencer = function (opts) {
     beats: 32,
     timeSignature: 8,
     bpm: 50,
+
+    volume: 0
   });
 
   this.samples = opts.samples;
   this.beats = opts.beats;
   this.timeSignature = opts.timeSignature;
   this.bpm = opts.bpm;
+  this.volume = opts.volume;
 
   this.tracks = [];
 
@@ -1948,6 +1951,9 @@ musicbox.Sequencer = function (opts) {
 
   this.sampler = new Tone.PolySynth(1, Tone.Sampler, samplePaths, synthParams);
   this.sampler.noGC();
+
+  // Set the volume for this sequencer
+  this.sampler.volume.value = this.volume; // -10 dB (quieter than default 0 dB)
 
   this.buildDom(opts);
 
@@ -2049,7 +2055,7 @@ musicbox.Sequencer.prototype.onInterval = function (time) {
 
   var group = Math.floor(this.stepNumber / this.timeSignature);
   var position = (this.stepNumber % this.timeSignature) * 12.5;
-  var noteIndex = this.parentMultiSequencer.placedNotes[Math.abs(this.index - 3)].findIndex(note => note.group == group && note.position == position);
+  var noteIndex = this.parentMultiSequencer.placedNotes[this.index].findIndex(note => note.group == group && note.position == position);
   if (noteIndex !== -1) {
     // this.parentMultiSequencer.placedNotes[this.index].splice(noteIndex, 1);
     this.sampler.triggerAttackRelease(this.trackNames["0"], "1n", time);
@@ -2254,7 +2260,7 @@ musicbox.Sequencer.prototype.triggerSample = function (track, vel) {
   }
   if (!this.playing)
     Tone.Transport.clear(this.intervalID);
-  this.sampler.volume.value = 0; // volume is in dB so this actually unmutes
+  // this.sampler.volume.value = 0; // volume is in dB so this actually unmutes
   this.sampler.triggerAttackRelease(
     this.trackNames[track],
     "1n",
@@ -2462,7 +2468,7 @@ musicbox.config.conga.sequencer = {
   ],
 };
 
-musicbox.config.cymbals.characterSmall = {
+musicbox.config.crymbals.characterSmall = {
   position: {
     x: 420,
     y: 320,
@@ -2540,7 +2546,7 @@ musicbox.config.cymbals.characterSmall = {
   },
 };
 
-musicbox.config.cymbals.sequencer = {
+musicbox.config.crymbals.sequencer = {
   // beats: 8,
   // timeSignature: 4,
   bpm: 40,
@@ -2567,6 +2573,8 @@ musicbox.config.cymbals.sequencer = {
     // [0,0,0,0,0,0,0,0], // [0,0,1,0,0,0,1,0],
     [1, 1, 1, 1, 1, 1, 1, 1],
   ],
+
+  volume: -30,
 };
 
 musicbox.config.triangle.characterSmall = {
@@ -2686,6 +2694,7 @@ musicbox.config.triangle.sequencer = {
     // [0,0,0,0,0,0], // [0,1,1,0,1,1],
     // [1,0,0,0,1,0]
   ],
+  volume: -20,
 };
 
 musicbox.config.woodblock.characterSmall = {

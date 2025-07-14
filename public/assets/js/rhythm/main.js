@@ -29,7 +29,7 @@ class RhythmGame {
             'eighth': 'woodblock',
             'quarter': 'conga',
             'half': 'triangle',
-            'whole': 'cymbals' 
+            'whole': 'crymbals' 
         };
         
         // Direct character index mapping for reliable triggering
@@ -37,7 +37,7 @@ class RhythmGame {
             'woodblock': 0,  
             'conga': 1,
             'triangle': 2,
-            'cymbals': 3,
+            'crymbals': 3,
         };
         
         this.init();
@@ -228,14 +228,14 @@ class RhythmGame {
             const characterIndex = this.characterIndexMap[characterKey];
             
             if (characterIndex !== undefined && this.pairs[characterIndex]) {
-                const pair = this.pairs[Math.abs(characterIndex - 3)];
+                const pair = this.pairs[characterIndex];
                 
                 // Trigger the character animation
                 pair.small(0.085); // Trigger the 'small' animation
                 
                 // Play the corresponding sound
-                if (this.multiSequencer && this.multiSequencer.sequencers[Math.abs(characterIndex - 3)]) {
-                    const sequencer = this.multiSequencer.sequencers[Math.abs(characterIndex - 3)];
+                if (this.multiSequencer && this.multiSequencer.sequencers[characterIndex]) {
+                    const sequencer = this.multiSequencer.sequencers[characterIndex];
                     const trackIndex = pair.armToTrackIndex['small'] || 0;
                     sequencer.triggerSample(trackIndex);
                 }
