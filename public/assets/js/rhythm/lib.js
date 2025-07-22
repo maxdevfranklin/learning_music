@@ -2672,7 +2672,7 @@ musicbox.config.triangle.sequencer = {
   bpm: 40,
 
   samples: [
-    "assets/sample/triangle5.mp3",
+    "assets/sample/timpani-triangle.mp3",
     // 'assets/sample/timpani-high.mp3',
     // 'assets/sample/timpani-low.mp3'
   ],
