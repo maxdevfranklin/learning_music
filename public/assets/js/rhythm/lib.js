@@ -2672,7 +2672,7 @@ musicbox.config.triangle.sequencer = {
   bpm: 40,
 
   samples: [
-    "assets/sample/triangle4.mp3",
+    "assets/sample/triangle5.mp3",
     // 'assets/sample/timpani-high.mp3',
     // 'assets/sample/timpani-low.mp3'
   ],
@@ -2694,7 +2694,7 @@ musicbox.config.triangle.sequencer = {
     // [0,0,0,0,0,0], // [0,1,1,0,1,1],
     // [1,0,0,0,1,0]
   ],
-  volume: -20,
+  volume: -10,
 };
 
 musicbox.config.woodblock.characterSmall = {
