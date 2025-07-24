@@ -700,6 +700,7 @@ musicbox.MultiSequencer = function (sequencers) {
   // this.setActiveSequencer(this.sequencers[0]);
 
   this.playing = false;
+  this.playheadCarriagePosition = -1;
 
   this.play = this.play.bind(this);
 
@@ -819,11 +820,6 @@ musicbox.MultiSequencer.prototype.pause = function (suspend) {
   this.fire("pause");
 };
 
-musicbox.MultiSequencer.prototype.updatePlayheadFromSequencer = function(sequencerIndex, stepNumber) {
-  // Update playhead position based on the sequencer's step number
-  this.updatePlayheadPosition(stepNumber + 1);
-};
-
 // Train creation and management methods
 // -------------------------------
 
@@ -925,59 +921,59 @@ musicbox.MultiSequencer.prototype.createPlayhead = function() {
   this.hidePlayhead();
 
   // Initialize playhead position
-  this.updatePlayheadPosition(0);
+  this.updatePlayheadPosition(-1);
 };
 
 musicbox.MultiSequencer.prototype.updatePlayheadPosition = function(stepNumber) {
-  if (!this.playhead) return;
+  if (!this.playhead || !this.playing) return;
 
-  var last = false;
-  if (stepNumber % 32 == 0 && stepNumber != 0) {
-    last = true;
-    stepNumber = 30;
-  }
-  var carriageNum = Math.floor(stepNumber / 8);
-  var currentCarriage = document.getElementsByClassName("train-carriage")[carriageNum];
-
-
-  if (currentCarriage) {
+  // if stepNumber is equal to -1, we are at the beginning of the sequence
+  if (stepNumber == -1) {
     var train = document.getElementsByClassName("rhythm-train-container")[0];
+    var currentCarriage = document.getElementsByClassName("train-carriage")[0];
+    var boundingBox = currentCarriage.getElementsByClassName("train-row")[0].getBoundingClientRect();
+    
+    this.playhead.style.transition = "none";
+    this.playhead.style.left = (boundingBox.left - train.getBoundingClientRect().left) + 'px';
+    return;
+  }
+  else {
 
-    var noteNum = Math.floor((stepNumber % 8) / 2);
-    var currentNote = currentCarriage.getElementsByClassName("beat-markers")[0].getElementsByClassName("beat")[noteNum];
+    var carriageNum = Math.floor(stepNumber / 8);
+    if (this.playheadCarriagePosition != carriageNum )
+      this.playheadCarriagePosition = carriageNum;
+    else 
+      return;
   
-    var boundingBox = currentNote.getBoundingClientRect();
-  
-    var position = boundingBox.left;
-    if (stepNumber % 2 == 1) {
-      position = boundingBox.left + (boundingBox.width / 2);
-    }
-    if (last) {
-      position = boundingBox.right;
-      
-      setTimeout(() => {
-        this.playhead.style.transition = "none";
-        this.playhead.style.left = (document.getElementsByClassName("train-row")[0].getBoundingClientRect().left - train.getBoundingClientRect().left) + 'px';
-        setTimeout(() => {
-          this.playhead.style.transition = "left 0.444444s linear";
-        }, 5);
-      }, 370);
+    var last = false;
+    if (stepNumber % 32 == 0 && stepNumber != 0) {
+      last = true;
+      stepNumber = 30;
     }
   
-    this.playhead.style.left = (position - train.getBoundingClientRect().left) + 'px';
-
-    // Add glow effect when playing
-    if (this.playing) {
-      this.playhead.style.boxShadow = '0 0 15px rgba(255, 215, 0, 1)';
-    } else {
-      this.playhead.style.boxShadow = '0 0 10px rgba(255, 215, 0, 0.8)';
+    var train = document.getElementsByClassName("rhythm-train-container")[0];
+    var currentCarriage = document.getElementsByClassName("train-carriage")[carriageNum];
+  
+    if (currentCarriage) {
+  
+      var boundingBox = currentCarriage.getElementsByClassName("train-row")[0].getBoundingClientRect();
+    
+      // Set playhead to starting position without transition
+      this.playhead.style.transition = "none";
+      this.playhead.style.left = (boundingBox.left - train.getBoundingClientRect().left) + 'px';
+  
+      // Force a reflow and then apply the transition
+      requestAnimationFrame(() => {
+        this.playhead.style.transition = "left 3s linear";
+        this.playhead.style.left = (boundingBox.right - train.getBoundingClientRect().left) + 'px';
+      });
     }
   }
 
 };
 
 musicbox.MultiSequencer.prototype.resetPlayhead = function() {
-  this.updatePlayheadPosition(0);
+  this.updatePlayheadPosition(-1);
 };
 
 musicbox.MultiSequencer.prototype.hidePlayhead = function() {
@@ -2050,7 +2046,7 @@ musicbox.Sequencer.prototype.onInterval = function (time) {
 
   // Update playhead position
   if (this.parentMultiSequencer && this.index == 0) {
-    this.parentMultiSequencer.updatePlayheadFromSequencer(this.index, this.stepNumber);
+    this.parentMultiSequencer.updatePlayheadPosition(this.stepNumber);
   }
 
   var group = Math.floor(this.stepNumber / this.timeSignature);
