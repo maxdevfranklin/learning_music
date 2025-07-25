@@ -240,7 +240,7 @@ class RhythmGame {
                     sequencer.triggerSample(trackIndex);
                 }
                 
-                this.showFeedback(`${noteType} note triggered ${characterKey}! 🎵`, 'success');
+                this.showFeedback(`${noteType} note triggered ${characterKey}! 🎵`, 'success', noteType);
             } else {
                 console.error(`Invalid character index: ${characterIndex} or no pair at that index`);
             }
@@ -351,7 +351,7 @@ class RhythmGame {
             this.multiSequencer.startTrainAnimation();
         }
         
-        this.startPlayheadAnimation();
+        // this.startPlayheadAnimation();
     }
 
     stop() {
@@ -372,44 +372,27 @@ class RhythmGame {
             // Stop train animation
             this.multiSequencer.stopTrainAnimation();
         }
-        
-        this.stopPlayheadAnimation();
-        this.resetPlayhead();
     }
 
-    startPlayheadAnimation() {
-        const playhead = document.getElementById('playhead');
-        if (!playhead) return;
+    // startPlayheadAnimation() {
+    //     const playhead = document.getElementById('playhead');
+    //     if (!playhead) return;
         
-        playhead.style.transition = 'left 4s linear';
-        playhead.style.left = '100%';
+    //     playhead.style.transition = 'left 4s linear';
+    //     // playhead.style.left = '100%';
         
-        setTimeout(() => {
-            if (this.isPlaying) {
-                playhead.style.transition = 'none';
-                playhead.style.left = '0%';
-                setTimeout(() => {
-                    if (this.isPlaying) {
-                        this.startPlayheadAnimation();
-                    }
-                }, 50);
-            }
-        }, 4000);
-    }
-
-    stopPlayheadAnimation() {
-        const playhead = document.getElementsByClassName('train-playhead')[0];
-        if (playhead) {
-            playhead.style.left = (document.getElementsByClassName("train-row")[0].getBoundingClientRect().left - document.getElementsByClassName("rhythm-train-container")[0].getBoundingClientRect().left) + 'px';
-        }
-    }
-
-    resetPlayhead() {
-        const playhead = document.getElementsByClassName('train-playhead')[0];
-        if (playhead) {
-            playhead.style.left = (document.getElementsByClassName("train-row")[0].getBoundingClientRect().left - document.getElementsByClassName("rhythm-train-container")[0].getBoundingClientRect().left) + 'px';
-        }
-    }
+    //     setTimeout(() => {
+    //         if (this.isPlaying) {
+    //             playhead.style.transition = 'none';
+    //             playhead.style.left = '0%';
+    //             setTimeout(() => {
+    //                 if (this.isPlaying) {
+    //                     this.startPlayheadAnimation();
+    //                 }
+    //             }, 50);
+    //         }
+    //     }, 4000);
+    // }
 
     clearAll() {
         this.stop();
@@ -427,7 +410,7 @@ class RhythmGame {
         this.showFeedback('All notes cleared from the train! 🗑️', 'info');
     }
 
-    showFeedback(message, type) {
+    showFeedback(message, type, note = "") {
         let feedback = document.querySelector('.feedback-message');
         if (!feedback) {
             feedback = document.createElement('div');
@@ -447,7 +430,25 @@ class RhythmGame {
         }
         
         feedback.textContent = message;
-        feedback.style.background = type === 'error' ? '#ff4444' : type === 'success' ? '#44ff44' : '#4444ff';
+        console.log(note)
+        if (note != "") {
+            switch(note) {
+                case "eighth":
+                    feedback.style.background = 'rgb(255, 215, 0)';
+                    break;
+                case "quarter":
+                    feedback.style.background = 'rgb(255, 68, 68)';
+                    break;
+                case "half":
+                    feedback.style.background = 'rgb(68, 255, 68)';
+                    break;
+                case "whole":
+                    feedback.style.background = 'rgb(68, 68, 255)';
+                    break;
+            }
+        } else {
+            feedback.style.background = type === 'error' ? '#ff4444' : type === 'success' ? '#44ff44' : '#4444ff';
+        }
         feedback.style.opacity = '1';
         
         setTimeout(() => {

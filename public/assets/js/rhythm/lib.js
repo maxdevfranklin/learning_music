@@ -781,6 +781,11 @@ musicbox.MultiSequencer.prototype.play = function () {
     this.domElement.classList.remove("suspended");
   }
   
+  // Reset playhead position
+  if (this.parentMultiSequencer) {
+    this.parentMultiSequencer.resetPlayhead();
+  }
+
   // Show playhead
   this.showPlayhead();
   
@@ -803,6 +808,12 @@ musicbox.MultiSequencer.prototype.pause = function (suspend) {
   }
 
   this.domElement.classList.remove("playing");
+
+  // Reset playhead position
+  if (this.parentMultiSequencer) {
+    console.log(this.parentMultiSequencer)
+    this.parentMultiSequencer.resetPlayhead();
+  }
 
   // Hide playhead
   this.hidePlayhead();
@@ -833,10 +844,7 @@ musicbox.MultiSequencer.prototype.createRhythmTrain = function(container) {
   this.trainContainer.className = 'rhythm-train-container';
   this.trainContainer.style.cssText = `
     width: 100%;
-    background: lightslategrey;
     border-radius: 15px;
-    padding: 20px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.3);
     position: relative;
   `;
 
@@ -929,7 +937,7 @@ musicbox.MultiSequencer.prototype.updatePlayheadPosition = function(stepNumber) 
 
   // if stepNumber is equal to -1, we are at the beginning of the sequence
   if (stepNumber == -1) {
-    var train = document.getElementsByClassName("rhythm-train-container")[0];
+    var train = document.getElementsByClassName("rhythm-carriage-container")[0];
     var currentCarriage = document.getElementsByClassName("train-carriage")[0];
     var boundingBox = currentCarriage.getElementsByClassName("train-row")[0].getBoundingClientRect();
     
@@ -951,7 +959,7 @@ musicbox.MultiSequencer.prototype.updatePlayheadPosition = function(stepNumber) 
       stepNumber = 30;
     }
   
-    var train = document.getElementsByClassName("rhythm-train-container")[0];
+    var train = document.getElementsByClassName("rhythm-carriage-container")[0];
     var currentCarriage = document.getElementsByClassName("train-carriage")[carriageNum];
   
     if (currentCarriage) {
@@ -994,7 +1002,7 @@ musicbox.MultiSequencer.prototype.createTrainCarriage = function(groupIndex) {
   carriage.dataset.group = groupIndex;
   carriage.style.cssText = `
     flex: 1;
-    background: rgba(255,255,255,0.1);
+    background: skyblue;
     border-radius: 12px;
     padding: 15px;
     border: 2px solid rgba(255,255,255,0.2);
@@ -1385,7 +1393,6 @@ musicbox.MultiSequencer.prototype.createNotePalette = function() {
   palette.style.cssText = `
     margin-top: 25px;
     padding: 15px;
-    background: #F5F5DC;
     border-radius: 10px;
     text-align: center;
   `;
@@ -1415,7 +1422,7 @@ musicbox.MultiSequencer.prototype.createNotePalette = function() {
   playButton.textContent = '▶️ Play';
   playButton.style.cssText = `
     padding: 10px 15px;
-    background: grey;
+    background: royalblue;
     color: white;
     border: none;
     border-radius: 8px;
@@ -1444,7 +1451,7 @@ musicbox.MultiSequencer.prototype.createNotePalette = function() {
   stopButton.textContent = '⏹️ Stop';
   stopButton.style.cssText = `
     padding: 10px 15px;
-    background: grey;
+    background: royalblue;
     color: white;
     border: none;
     border-radius: 8px;
@@ -1473,7 +1480,7 @@ musicbox.MultiSequencer.prototype.createNotePalette = function() {
   clearButton.textContent = '🗑️ Clear All';
   clearButton.style.cssText = `
     padding: 10px 15px;
-    background: grey;
+    background: royalblue;
     color: white;
     border: none;
     border-radius: 8px;
@@ -1770,6 +1777,8 @@ musicbox.MultiSequencer.prototype.removeNote = function(row, noteId) {
   // Remove from data
   this.placedNotes[row] = this.placedNotes[row].filter(note => note.id !== noteId);
   
+  console.log(noteId)
+  debugger;
   // Remove from DOM
   const noteElement = document.querySelector(`[data-note-id="${noteId}"]`);
   if (noteElement) {
@@ -1777,7 +1786,7 @@ musicbox.MultiSequencer.prototype.removeNote = function(row, noteId) {
   }
   
   this.updateSequencerFromNotes();
-  this.showFeedback('Note removed from the train! 🗑️', 'info');
+  this.showFeedback('Note removed from the train! 🗑️', 'info', noteElement.classList[1]);
 };
 
 musicbox.MultiSequencer.prototype.updateSequencerFromNotes = function() {
@@ -1804,7 +1813,7 @@ musicbox.MultiSequencer.prototype.updateSequencerFromNotes = function() {
   // Don't trigger character animations here - they should only trigger during playback
 };
 
-musicbox.MultiSequencer.prototype.showFeedback = function(message, type) {
+musicbox.MultiSequencer.prototype.showFeedback = function(message, type, note = "") {
   // Create or update feedback element
   let feedback = document.querySelector('.feedback-message');
   if (!feedback) {
@@ -1825,7 +1834,25 @@ musicbox.MultiSequencer.prototype.showFeedback = function(message, type) {
   }
   
   feedback.textContent = message;
-  feedback.style.background = type === 'error' ? '#ff4444' : type === 'success' ? '#44ff44' : '#4444ff';
+  console.log(note);
+  if (note != "") {
+    switch(note) {
+        case "eighth":
+            feedback.style.background = 'rgb(255, 215, 0)';
+            break;
+        case "quarter":
+            feedback.style.background = 'rgb(255, 68, 68)';
+            break;
+        case "half":
+            feedback.style.background = 'rgb(68, 255, 68)';
+            break;
+        case "whole":
+            feedback.style.background = 'rgb(68, 68, 255)';
+            break;
+    }
+  } else {
+      feedback.style.background = type === 'error' ? '#ff4444' : type === 'success' ? '#44ff44' : '#4444ff';
+  }
   feedback.style.opacity = '1';
   
   // Hide after 3 seconds
@@ -1975,11 +2002,6 @@ musicbox.Sequencer.prototype.start = function () {
   this.sequencerInnerWidth = this.domElement.offsetWidth - 40;
 
   this.stepNumber = 0;
-
-  // Reset playhead position
-  if (this.parentMultiSequencer) {
-    this.parentMultiSequencer.resetPlayhead();
-  }
 
   var intervalLength = (this.beats / this.timeSignature) * 4 + "n";
 
@@ -2538,7 +2560,7 @@ musicbox.config.crymbals.characterSmall = {
 
   legs: {
     texture: "texture/slices_crocodile-little-legs.png",
-    position: { x: 120, y: 220 },
+    position: { x: 120, y: 260 },
   },
 };
 
@@ -2582,7 +2604,7 @@ musicbox.config.triangle.characterSmall = {
   eyes: {
     position: {
       x: 0,
-      y: -210,
+      y: -250,
     },
     scale: 0.79,
     color: 0x100d11,
@@ -2599,7 +2621,7 @@ musicbox.config.triangle.characterSmall = {
 
   face: {
     texture: "texture/slices_pig-little-face.png",
-    position: { x: 0, y: -170 },
+    position: { x: 0, y: -210 },
   },
 
   strikeBoth: {
@@ -2609,7 +2631,7 @@ musicbox.config.triangle.characterSmall = {
 
   armLeft: {
     texture: "texture/slices_pig-little-arm-left.png",
-    position: { x: 0, y: 0 },
+    position: { x: 0, y: -3 },
     animation: {
       rotation: {
         file: "json/timpani-little-arms.json",
@@ -2631,7 +2653,7 @@ musicbox.config.triangle.characterSmall = {
 
   armRight: {
     texture: "texture/slices_pig-little-arm-right.png",
-    position: { x: 58, y: 0 },
+    position: { x: 58, y: -3 },
     animation: {
       rotation: {
         file: "json/timpani-little-arms.json",
@@ -2653,12 +2675,12 @@ musicbox.config.triangle.characterSmall = {
 
   body: {
     texture: "texture/slices_pig-little-body.png",
-    position: { x: 120, y: 135 },
+    position: { x: 120, y: 95 },
   },
 
   legs: {
     texture: "texture/slices_pig-little-legs.png",
-    position: { x: 125, y: 120 },
+    position: { x: 125, y: 130 },
   },
 };
 
