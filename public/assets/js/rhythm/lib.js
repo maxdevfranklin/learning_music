@@ -1002,7 +1002,7 @@ musicbox.MultiSequencer.prototype.createTrainCarriage = function(groupIndex) {
   carriage.dataset.group = groupIndex;
   carriage.style.cssText = `
     flex: 1;
-    background: skyblue;
+    background: lightgrey;
     border-radius: 12px;
     padding: 15px;
     border: 2px solid rgba(255,255,255,0.2);
@@ -1422,7 +1422,7 @@ musicbox.MultiSequencer.prototype.createNotePalette = function() {
   playButton.textContent = '▶️ Play';
   playButton.style.cssText = `
     padding: 10px 15px;
-    background: royalblue;
+    background: darkgrey;
     color: white;
     border: none;
     border-radius: 8px;
@@ -1451,7 +1451,7 @@ musicbox.MultiSequencer.prototype.createNotePalette = function() {
   stopButton.textContent = '⏹️ Stop';
   stopButton.style.cssText = `
     padding: 10px 15px;
-    background: royalblue;
+    background: darkgrey;
     color: white;
     border: none;
     border-radius: 8px;
@@ -1480,7 +1480,7 @@ musicbox.MultiSequencer.prototype.createNotePalette = function() {
   clearButton.textContent = '🗑️ Clear All';
   clearButton.style.cssText = `
     padding: 10px 15px;
-    background: royalblue;
+    background: darkgrey;
     color: white;
     border: none;
     border-radius: 8px;
@@ -1823,7 +1823,7 @@ musicbox.MultiSequencer.prototype.showFeedback = function(message, type, note = 
       position: fixed;
       top: 20px;
       right: 20px;
-      padding: 15px 20px;
+      padding: 10px 20px;
       border-radius: 8px;
       color: white;
       font-weight: bold;

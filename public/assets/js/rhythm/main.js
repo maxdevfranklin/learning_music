@@ -125,7 +125,7 @@ class RhythmGame {
             // Make character pairs
             var characterSmall = new musicbox.Character(config.characterSmall);
             var basePosition = config.characterSmall.position;
-            characterSmall.container.position.x = 0;
+            characterSmall.container.position.x = 50;
             characterSmall.container.position.y = basePosition.y;
             
             var pair = new musicbox.CharacterPair(characterSmall);
@@ -239,8 +239,20 @@ class RhythmGame {
                     const trackIndex = pair.armToTrackIndex['small'] || 0;
                     sequencer.triggerSample(trackIndex);
                 }
-                
-                this.showFeedback(`${noteType} note triggered ${characterKey}! 🎵`, 'success', noteType);
+                switch(noteType) {
+                    case "eighth":
+                        this.showFeedback(`${noteType} note triggered ${characterKey}! <img src="assets/image/eighth-note.png" style="vertical-align: middle; height: 25px">`, 'success', noteType);
+                        break;
+                    case "quarter":
+                        this.showFeedback(`${noteType} note triggered ${characterKey}! <img src="assets/image/quarter-note.png" style="vertical-align: middle; height: 25px">`, 'success', noteType);
+                        break;
+                    case "half":
+                        this.showFeedback(`${noteType} note triggered ${characterKey}! <img src="assets/image/half-note.png" style="vertical-align: middle; height: 25px">`, 'success', noteType);
+                        break;
+                    case "whole":
+                        this.showFeedback(`${noteType} note triggered ${characterKey}! <img src="assets/image/whole-note.png" style="vertical-align: middle; height: 25px">`, 'success', noteType);
+                        break;
+                }
             } else {
                 console.error(`Invalid character index: ${characterIndex} or no pair at that index`);
             }
@@ -419,7 +431,7 @@ class RhythmGame {
                 position: fixed;
                 top: 20px;
                 right: 20px;
-                padding: 15px 20px;
+                padding: 10px 20px;
                 border-radius: 8px;
                 color: white;
                 font-weight: bold;
@@ -429,7 +441,7 @@ class RhythmGame {
             document.body.appendChild(feedback);
         }
         
-        feedback.textContent = message;
+        feedback.innerHTML = message;
         console.log(note)
         if (note != "") {
             switch(note) {
