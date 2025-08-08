@@ -1008,7 +1008,6 @@ musicbox.MultiSequencer.prototype.createTrainCarriage = function(groupIndex) {
     border: 2px solid rgba(255,255,255,0.2);
     position: relative;
     transition: transform 0.3s ease;
-    min-width: 200px;
   `;
 
   // Carriage header
@@ -1533,7 +1532,7 @@ musicbox.MultiSequencer.prototype.createNotePalette = function() {
     noteElement.draggable = true;
     noteElement.style.cssText = `
       width: 80px;
-      height: 50px;
+      height: 5vh;
       background: ${noteType.color};
       border: 2px solid #333;
       border-radius: 8px;
@@ -1554,19 +1553,19 @@ musicbox.MultiSequencer.prototype.createNotePalette = function() {
     switch (noteType.name) {
       case 'eighth': 
         symbol = '<img src="assets/image/eighth-note.png" style="height: 70%"/>'; 
-        noteElement.style.width = "40px";
+        noteElement.style.width = "2.5vw";
         break;
       case 'quarter': 
         symbol = '<img src="assets/image/quarter-note.png" style="height: 70%"/>'; 
-        noteElement.style.width = "80px";
+        noteElement.style.width = "5vw";
         break;
       case 'half': 
         symbol = '<img src="assets/image/half-note.png" style="height: 70%"/>'; 
-        noteElement.style.width = "160px";
+        noteElement.style.width = "10vw";
         break;
       case 'whole': 
         symbol = '<img src="assets/image/whole-note.png" style="height: 50%"/>'; 
-        noteElement.style.width = "320px";
+        noteElement.style.width = "20vw";
         break;
     }
     noteElement.innerHTML = symbol; // + '<div style="font-size: 13px; margin-top: 2px;">' + noteType.name + '</div>';
@@ -1778,7 +1777,7 @@ musicbox.MultiSequencer.prototype.removeNote = function(row, noteId) {
   this.placedNotes[row] = this.placedNotes[row].filter(note => note.id !== noteId);
   
   console.log(noteId)
-  debugger;
+  // debugger;
   // Remove from DOM
   const noteElement = document.querySelector(`[data-note-id="${noteId}"]`);
   if (noteElement) {
@@ -2592,7 +2591,7 @@ musicbox.config.crymbals.sequencer = {
     [1, 1, 1, 1, 1, 1, 1, 1],
   ],
 
-  volume: -30,
+  volume: -20,
 };
 
 musicbox.config.triangle.characterSmall = {
