@@ -1000,15 +1000,6 @@ musicbox.MultiSequencer.prototype.createTrainCarriage = function(groupIndex) {
   var carriage = document.createElement('div');
   carriage.className = 'train-carriage';
   carriage.dataset.group = groupIndex;
-  carriage.style.cssText = `
-    flex: 1;
-    background: lightgrey;
-    border-radius: 12px;
-    padding: 15px;
-    border: 2px solid rgba(255,255,255,0.2);
-    position: relative;
-    transition: transform 0.3s ease;
-  `;
 
   // Carriage header
   var carriageHeader = document.createElement('div');
@@ -2406,7 +2397,7 @@ musicbox.config.conga.characterSmall = {
 
   armLeft: {
     texture: "texture/slices_dog-little-arm-left.png",
-    position: { x: 0, y: 0 },
+    position: { x: -15, y: 0 },
     animation: {
       rotation: {
         file: "json/conga-little-arms.json",
@@ -2429,7 +2420,7 @@ musicbox.config.conga.characterSmall = {
 
   armRight: {
     texture: "texture/slices_dog-little-arm-right.png",
-    position: { x: 85, y: 0 },
+    position: { x: 70, y: 0 },
     back: true,
     animation: {
       rotation: {
@@ -2441,17 +2432,17 @@ musicbox.config.conga.characterSmall = {
 
   face: {
     texture: "texture/slices_dog-little-face.png",
-    position: { x: -0, y: -80 },
+    position: { x: 0, y: -80 },
   },
 
   body: {
     texture: "texture/slices_dog-little-body.png",
-    position: { x: 160, y: 200 },
+    position: { x: 105, y: 200 },
   },
 
   legs: {
     texture: "texture/slices_dog-little-legs.png",
-    position: { x: 160, y: 220 },
+    position: { x: 105, y: 220 },
   },
 };
 
