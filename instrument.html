@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Music Instrument Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .cursor-mallet {
+      /* Use mallet image for xylophone */
+      cursor: url('assets/image/instrument/mallet.png') 10 5, auto !important;
+    }
+    .cursor-stick {
+      /* Use metal stick image for glasses */
+      cursor: url('assets/image/instrument/metalstick.png') 10 5, auto !important;
+    }
+    .instrument-container {
+      min-height: 300px;
+    }
+    .navbar {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      /* background: linear-gradient(60deg, rgb(72, 49, 163) 0%, rgb(1, 137, 155) 100%); */
+      box-shadow: rgba(0, 0, 0, 0.1) 1px 1px 1px 1px;
+      font-family: sans-serif;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: 5rem;
+    }
+
+    .nav-title {
+      color: black;
+      font-weight: bold;
+      font-size: 24px;
+    }
+
+    .nav-btn.back {
+      background-image: url(assets/image/back-arrow.png);
+      display: block;
+      background-repeat: no-repeat;
+      background-size: 100%;
+      width: 4rem;
+      height: 4rem;
+      cursor: pointer;
+      z-index: 100;
+      background-color: transparent;
+      background-position: left center;
+    }
+
+    .nav-btn.help {
+      background-color: rgb(255, 194, 52);
+      color: rgb(255, 255, 255);
+      cursor: pointer;
+      text-align: center;
+      display: block;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 30rem;
+      padding: 0.4rem;
+    }
+    .custom-cursor-img {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      width: 200px;
+      height: 200px;
+      display: none;
+    }
+    body.custom-cursor-active {
+      cursor: none !important;
+    }
+  </style>
+</head>
+<body style="display: flex; flex-direction: column; height: 100vh;">
+  <nav class="navbar">
+    <a class="nav-btn back" onclick="location.href='/'"></a>
+    <span class="nav-title">Music Instrument</span>
+    <a class="nav-btn help" style="visibility: hidden;">?</a>
+  </nav>
+  <div class="flex-1" style="flex-direction: row; display: flex; padding: 2rem;">
+    <div style="width: 40%; justify-content: center; display: flex; flex-direction: column;">
+      <!-- Instrument Selector -->
+      <div class="flex justify-center gap-4 mb-8" id="instrumentSelector">
+        <button class="instrument-btn flex flex-col items-center p-4 rounded-xl transition-all duration-300 bg-blue-500 text-white shadow-lg scale-105" data-instrument="piano">
+          <svg class="w-8 h-8 mb-2" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM8 20H4V4h4v16zm6 0h-4V4h4v16zm6 0h-4V4h4v16z"/>
+          </svg>
+          <span class="text-sm font-medium">Piano</span>
+        </button>
+        <button class="instrument-btn flex flex-col items-center p-4 rounded-xl transition-all duration-300 bg-white text-gray-700 hover:bg-gray-50 shadow-md hover:shadow-lg" data-instrument="xylophone">
+          <svg class="w-8 h-8 mb-2" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+          </svg>
+          <span class="text-sm font-medium">Xylophone</span>
+        </button>
+        <button class="instrument-btn flex flex-col items-center p-4 rounded-xl transition-all duration-300 bg-white text-gray-700 hover:bg-gray-50 shadow-md hover:shadow-lg" data-instrument="glasses">
+          <svg class="w-8 h-8 mb-2" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M9.5 2C8.67 2 8 2.67 8 3.5S8.67 5 9.5 5 11 4.33 11 3.5 10.33 2 9.5 2zm5 0C13.67 2 13 2.67 13 3.5S13.67 5 14.5 5 16 4.33 16 3.5 15.33 2 14.5 2zM12 6c-3.31 0-6 2.69-6 6v8h12v-8c0-3.31-2.69-6-6-6z"/>
+          </svg>
+          <span class="text-sm font-medium">Glasses</span>
+        </button>
+      </div>
+  
+      <!-- Pitch Graph -->
+      <div class="bg-white rounded-lg shadow-lg p-6 mb-8 max-w-4xl mx-auto">
+        <h3 class="text-lg font-semibold text-gray-800 mb-6 text-center">
+          Pitch Visualization
+        </h3>
+        
+        <div class="relative bg-gray-50 border border-gray-200 h-80">
+          <!-- Grid lines -->
+          <div class="absolute inset-0">
+            <!-- Horizontal grid lines -->
+            <div class="absolute w-full border-t border-gray-300" style="top: 12.5%"></div>
+            <div class="absolute w-full border-t border-gray-300" style="top: 25%"></div>
+            <div class="absolute w-full border-t border-gray-300" style="top: 37.5%"></div>
+            <div class="absolute w-full border-t border-gray-300" style="top: 50%"></div>
+            <div class="absolute w-full border-t border-gray-300" style="top: 62.5%"></div>
+            <div class="absolute w-full border-t border-gray-300" style="top: 75%"></div>
+            <div class="absolute w-full border-t border-gray-300" style="top: 87.5%"></div>
+            <!-- Vertical grid lines -->
+            <div class="absolute h-full border-l border-gray-300" style="left: 20%"></div>
+            <div class="absolute h-full border-l border-gray-300" style="left: 30%"></div>
+            <div class="absolute h-full border-l border-gray-300" style="left: 40%"></div>
+            <div class="absolute h-full border-l border-gray-300" style="left: 50%"></div>
+            <div class="absolute h-full border-l border-gray-300" style="left: 60%"></div>
+            <div class="absolute h-full border-l border-gray-300" style="left: 70%"></div>
+            <div class="absolute h-full border-l border-gray-300" style="left: 80%"></div>
+            <div class="absolute h-full border-l border-gray-300" style="left: 90%"></div>
+          </div>
+          
+          <!-- Chart area -->
+          <div class="relative flex h-full">
+            <!-- Y-axis labels -->
+            <div class="flex flex-col-reverse justify-between py-4 pr-3 w-16">
+              <div class="text-sm font-medium text-gray-700">C</div>
+              <div class="text-sm font-medium text-gray-700">D</div>
+              <div class="text-sm font-medium text-gray-700">E</div>
+              <div class="text-sm font-medium text-gray-700">F</div>
+              <div class="text-sm font-medium text-gray-700">G</div>
+              <div class="text-sm font-medium text-gray-700">A</div>
+              <div class="text-sm font-medium text-gray-700">B</div>
+              <div class="text-sm font-medium text-gray-700">C</div>
+            </div>
+            
+            <!-- Bars container -->
+            <div class="flex-1 flex items-end justify-center gap-2 px-4 pb-4" id="pitchBars">
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="0" style="width: 60px; height: 12.5%; background-color: #E53E3E; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="2" style="width: 60px; height: 25%; background-color: #FF8C00; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="4" style="width: 60px; height: 37.5%; background-color: #FFD700; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="5" style="width: 60px; height: 50%; background-color: #32CD32; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="7" style="width: 60px; height: 62.5%; background-color: #20B2AA; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="9" style="width: 60px; height: 75%; background-color: #4169E1; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="11" style="width: 60px; height: 87.5%; background-color: #9932CC; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="12" style="width: 60px; height: 100%; background-color: #E53E3E; min-height: 20px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instrument Container -->
+    <div class="flex justify-center flex-1" style="align-items: center;">
+      <div id="instrumentContainer" class="instrument-container">
+        <!-- Piano (default) -->
+        <div id="piano" class="instrument active">
+          <div class="relative bg-gray-800 p-6 rounded-xl shadow-2xl max-w-2xl mx-auto">
+            <div class="relative flex" id="pianoKeys">
+              <!-- Piano keys will be generated by JavaScript -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Xylophone -->
+        <div id="xylophone" class="instrument hidden">
+          <div class="bg-gradient-to-b from-amber-100 to-amber-200 p-8 rounded-xl shadow-2xl max-w-3xl mx-auto">
+            <div class="flex items-end justify-center gap-1" id="xylophoneKeys">
+              <!-- Xylophone bars will be generated by JavaScript -->
+            </div>
+            <div class="mt-4 flex justify-center">
+              <div class="w-full h-6 bg-gradient-to-r from-amber-600 to-amber-800 rounded-full shadow-inner"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Glasses -->
+        <div id="glasses" class="instrument hidden">
+          <div class="bg-white p-8 rounded-xl shadow-2xl max-w-3xl mx-auto">
+            <div class="flex items-end justify-center gap-3" id="glassesKeys">
+              <!-- Glasses will be generated by JavaScript -->
+            </div>
+            <div class="mt-6 w-full h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full shadow-inner"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/js/instrument/script.js"></script>
+</body>
+</html>
