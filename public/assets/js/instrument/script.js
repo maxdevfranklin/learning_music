@@ -212,7 +212,7 @@ function createXylophone() {
       const container = document.createElement('div');
       container.className = 'flex flex-col items-center';
       const bar = document.createElement('button');
-      bar.className = 'rounded-lg shadow-lg transition-all duration-100 hover:brightness-110 active:scale-95 bg-gradient-to-b from-gray-300 to-gray-500 w-9';
+      bar.className = 'rounded-lg shadow-lg transition-all duration-100 hover:brightness-110 active:scale-95 bg-gradient-to-b from-gray-300 to-gray-500 w-9 flex items-center justify-center';
       bar.style.height = `${barHeight}px`;
       bar.style.boxShadow = 'inset 0 2px 4px rgba(255,255,255,0.3), 0 4px 8px rgba(0,0,0,0.2)';
       bar.addEventListener('mousedown', () => {
@@ -223,10 +223,10 @@ function createXylophone() {
       bar.addEventListener('mouseleave', disableCustomCursor);
       bar.addEventListener('mousemove', moveCustomCursor);
       const label = document.createElement('span');
-      label.className = 'text-xs mt-2 text-gray-700 font-medium';
+      label.className = 'text-xs text-gray-700 font-medium pointer-events-none';
       label.textContent = note;
+      bar.appendChild(label);
       container.appendChild(bar);
-      container.appendChild(label);
       xylophoneKeys.appendChild(container);
   });
 }
@@ -237,12 +237,12 @@ function createGlasses() {
   glassesKeys.innerHTML = '';
   naturalNoteNames.forEach((note, i) => {
       const index = naturalNoteIndices[i];
-      const glassHeight = 100 + (i * 8);
-      const waterLevel = 30 + (i * 6);
+      const glassHeight = 150;
+      const waterLevel = 150 - (30 + (i * 9));
       const container = document.createElement('div');
       container.className = 'flex flex-col items-center';
       const glass = document.createElement('button');
-      glass.className = 'relative transition-all duration-100 hover:scale-105 active:scale-95';
+      glass.className = 'relative transition-all duration-100 hover:scale-105 active:scale-95 flex items-center justify-center';
       glass.style.height = `${glassHeight}px`;
       glass.style.width = '36px';
       glass.addEventListener('mousedown', () => {
@@ -263,11 +263,12 @@ function createGlasses() {
       glassBody.appendChild(water);
       glassBody.appendChild(shine);
       glass.appendChild(glassBody);
+      // Centered label inside the glass button
       const label = document.createElement('span');
-      label.className = 'text-xs mt-2 text-gray-700 font-medium';
+      label.className = 'text-xs text-gray-700 font-medium pointer-events-none z-10';
       label.textContent = note;
+      glass.appendChild(label);
       container.appendChild(glass);
-      container.appendChild(label);
       glassesKeys.appendChild(container);
   });
 }
