@@ -197,39 +197,34 @@ function createPiano() {
   });
 }
 
+// Only use natural notes for xylophone and glasses
+const naturalNoteIndices = [0, 2, 4, 5, 7, 9, 11, 12];
+const naturalNoteNames = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C'];
+
 // Create xylophone
 function createXylophone() {
   const xylophoneKeys = document.getElementById('xylophoneKeys');
   xylophoneKeys.innerHTML = '';
   
-  noteNames.forEach((note, index) => {
-      const barHeight = 80 + (index * 10);
-      const isSharp = note.includes('#');
-      
+  naturalNoteNames.forEach((note, i) => {
+      const index = naturalNoteIndices[i];
+      const barHeight = 80 + (i * 10);
       const container = document.createElement('div');
       container.className = 'flex flex-col items-center';
-      
       const bar = document.createElement('button');
-      bar.className = `rounded-lg shadow-lg transition-all duration-100 hover:brightness-110 active:scale-95 ${
-          isSharp 
-              ? 'bg-gradient-to-b from-gray-400 to-gray-600 w-7' 
-              : 'bg-gradient-to-b from-gray-300 to-gray-500 w-9'
-      }`;
+      bar.className = 'rounded-lg shadow-lg transition-all duration-100 hover:brightness-110 active:scale-95 bg-gradient-to-b from-gray-300 to-gray-500 w-9';
       bar.style.height = `${barHeight}px`;
       bar.style.boxShadow = 'inset 0 2px 4px rgba(255,255,255,0.3), 0 4px 8px rgba(0,0,0,0.2)';
       bar.addEventListener('mousedown', () => {
         handleNotePlay(index);
         shakeCustomCursor();
       });
-      // Custom cursor events
       bar.addEventListener('mouseenter', () => enableCustomCursor('assets/image/instrument/mallet.png'));
       bar.addEventListener('mouseleave', disableCustomCursor);
       bar.addEventListener('mousemove', moveCustomCursor);
-      
       const label = document.createElement('span');
       label.className = 'text-xs mt-2 text-gray-700 font-medium';
       label.textContent = note;
-      
       container.appendChild(bar);
       container.appendChild(label);
       xylophoneKeys.appendChild(container);
@@ -240,14 +235,12 @@ function createXylophone() {
 function createGlasses() {
   const glassesKeys = document.getElementById('glassesKeys');
   glassesKeys.innerHTML = '';
-  
-  noteNames.forEach((note, index) => {
-      const glassHeight = 100 + (index * 8);
-      const waterLevel = 30 + (index * 6);
-      
+  naturalNoteNames.forEach((note, i) => {
+      const index = naturalNoteIndices[i];
+      const glassHeight = 100 + (i * 8);
+      const waterLevel = 30 + (i * 6);
       const container = document.createElement('div');
       container.className = 'flex flex-col items-center';
-      
       const glass = document.createElement('button');
       glass.className = 'relative transition-all duration-100 hover:scale-105 active:scale-95';
       glass.style.height = `${glassHeight}px`;
@@ -256,30 +249,23 @@ function createGlasses() {
         handleNotePlay(index);
         shakeCustomCursor();
       });
-      // Custom cursor events
       glass.addEventListener('mouseenter', () => enableCustomCursor('assets/image/instrument/metalstick.png'));
       glass.addEventListener('mouseleave', disableCustomCursor);
       glass.addEventListener('mousemove', moveCustomCursor);
-      
       const glassBody = document.createElement('div');
       glassBody.className = 'absolute bottom-0 w-full border-2 border-gray-400 rounded-b-lg bg-gradient-to-t from-blue-50 to-transparent';
       glassBody.style.height = `${glassHeight}px`;
-      
       const water = document.createElement('div');
       water.className = 'absolute bottom-0 w-full bg-gradient-to-t from-blue-300 to-blue-200 rounded-b-lg opacity-80';
       water.style.height = `${waterLevel}px`;
-      
       const shine = document.createElement('div');
       shine.className = 'absolute left-1 top-2 w-1 h-12 bg-white opacity-60 rounded-full';
-      
       glassBody.appendChild(water);
       glassBody.appendChild(shine);
       glass.appendChild(glassBody);
-      
       const label = document.createElement('span');
       label.className = 'text-xs mt-2 text-gray-700 font-medium';
       label.textContent = note;
-      
       container.appendChild(glass);
       container.appendChild(label);
       glassesKeys.appendChild(container);
