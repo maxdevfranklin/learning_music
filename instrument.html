@@ -16,6 +16,8 @@
     }
     .instrument-container {
       min-height: 300px;
+      width: 100%;
+      padding-left: 9%;
     }
     .navbar {
       width: 100%;
@@ -23,7 +25,7 @@
       justify-content: space-between;
       align-items: center;
       padding: 12px 20px;
-      /* background: linear-gradient(60deg, rgb(72, 49, 163) 0%, rgb(1, 137, 155) 100%); */
+      background: white;
       box-shadow: rgba(0, 0, 0, 0.1) 1px 1px 1px 1px;
       font-family: sans-serif;
       position: sticky;
@@ -73,6 +75,21 @@
     body.custom-cursor-active {
       cursor: none !important;
     }
+    .pitch-bar {
+      width: 12.5%;
+    }
+    .piano-white-button {
+      width: 12.5%;
+    }
+    .piano-black-button {
+      width: 8.5%;
+    }
+    .glass-button {
+      width: 12.5%;
+    }
+    .xylophone-button {
+      width: 12.5%;
+    }
   </style>
 </head>
 <body style="display: flex; flex-direction: column; height: 100vh;">
@@ -81,13 +98,13 @@
     <span class="nav-title">Music Instrument</span>
     <a class="nav-btn help" style="visibility: hidden;">?</a>
   </nav>
-  <div class="flex-1" style="flex-direction: column; display: flex; padding: 2rem;">
+  <div class="flex-1 container" style="flex-direction: column; display: flex; padding: 2rem; margin: auto;">
     <div style="justify-content: center; display: flex; flex-direction: column;">
       <!-- Pitch Graph -->
       <h3 class="text-lg font-semibold text-gray-800 mb-6 text-center">
         Pitch Visualization
       </h3>
-      <div class="bg-white rounded-lg shadow-lg p-6 mb-8 max-w-4xl mx-auto">
+      <div class="bg-white rounded-lg shadow-lg p-6 mb-8 max-w-4xl mx-auto w-full">
         
         <div class="relative bg-gray-50 border border-gray-200 h-80" style="height: 100%;">
           <!-- Grid lines -->
@@ -114,7 +131,7 @@
           <!-- Chart area -->
           <div class="relative flex h-full">
             <!-- Y-axis labels -->
-            <div class="flex flex-col-reverse justify-between" style="width: 50px">
+            <div class="flex flex-col-reverse justify-between" style="width: 10%">
               <div class="text-sm font-medium text-gray-700" style="text-align: right; padding-right: 5px;">C</div>
               <div class="text-sm font-medium text-gray-700" style="text-align: right; padding-right: 5px;">D</div>
               <div class="text-sm font-medium text-gray-700" style="text-align: right; padding-right: 5px;">E</div>
@@ -127,14 +144,14 @@
             
             <!-- Bars container -->
             <div class="flex-1 flex items-end justify-center" id="pitchBars">
-              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="0" style="width: 55px; height: 12.5%; background-color: #E53E3E; min-height: 20px;"></div>
-              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="2" style="width: 55px; height: 25%; background-color: #FF8C00; min-height: 20px;"></div>
-              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="4" style="width: 55px; height: 37.5%; background-color: #FFD700; min-height: 20px;"></div>
-              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="5" style="width: 55px; height: 50%; background-color: #32CD32; min-height: 20px;"></div>
-              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="7" style="width: 55px; height: 62.5%; background-color: #20B2AA; min-height: 20px;"></div>
-              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="9" style="width: 55px; height: 75%; background-color: #4169E1; min-height: 20px;"></div>
-              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="11" style="width: 55px; height: 87.5%; background-color: #9932CC; min-height: 20px;"></div>
-              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="12" style="width: 55px; height: 100%; background-color: #E53E3E; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="0" style="height: 12.5%; background-color: #E53E3E; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="2" style="height: 25%; background-color: #FF8C00; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="4" style="height: 37.5%; background-color: #FFD700; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="5" style="height: 50%; background-color: #32CD32; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="7" style="height: 62.5%; background-color: #20B2AA; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="9" style="height: 75%; background-color: #4169E1; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="11" style="height: 87.5%; background-color: #9932CC; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="12" style="height: 100%; background-color: #E53E3E; min-height: 20px;"></div>
             </div>
           </div>
         </div>
@@ -167,8 +184,8 @@
       <div id="instrumentContainer" class="instrument-container">
         <!-- Piano (default) -->
         <div id="piano" class="instrument active">
-          <div class="relative bg-gray-800 p-6 rounded-xl shadow-2xl max-w-2xl mx-auto">
-            <div class="relative flex" id="pianoKeys">
+          <div class="relative bg-gray-800 p-6 rounded-xl shadow-2xl max-w-3xl mx-auto">
+            <div class="relative flex justify-center" id="pianoKeys">
               <!-- Piano keys will be generated by JavaScript -->
             </div>
           </div>

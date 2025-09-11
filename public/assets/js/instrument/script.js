@@ -24,6 +24,10 @@ const blackKeyNames = ['C#', 'D#', 'F#', 'G#', 'A#'];
 let currentInstrument = 'piano';
 let audioContext = null;
 
+// Mouse and touch drag state
+let isDragging = false;
+let lastPlayedNote = null;
+
 // Initialize audio context
 function getAudioContext() {
   if (!audioContext) {
@@ -101,6 +105,110 @@ function handleNotePlay(noteIndex) {
   const frequency = noteFrequencies[noteIndex];
   playNote(frequency, currentInstrument);
   updatePitchVisualization(noteIndex);
+  shakeCustomCursor();
+}
+
+// Handle mouse down - start dragging
+function handleMouseDown(noteIndex) {
+  isDragging = true;
+  lastPlayedNote = noteIndex;
+  handleNotePlay(noteIndex);
+}
+
+// Handle mouse enter/over during drag
+function handleMouseOverDrag(noteIndex) {
+  if (isDragging && lastPlayedNote !== noteIndex) {
+    lastPlayedNote = noteIndex;
+    handleNotePlay(noteIndex);
+  }
+}
+
+// Handle mouse up - stop dragging
+function handleMouseUp() {
+  isDragging = false;
+  lastPlayedNote = null;
+}
+
+// Handle touch start - start dragging
+function handleTouchStart(noteIndex, event) {
+  event.preventDefault();
+  isDragging = true;
+  lastPlayedNote = noteIndex;
+  handleNotePlay(noteIndex);
+}
+
+// Handle touch move - play notes during drag
+function handleTouchMove(event) {
+  if (!isDragging) return;
+  
+  event.preventDefault();
+  const touch = event.touches[0];
+  const element = document.elementFromPoint(touch.clientX, touch.clientY);
+  
+  // Update custom cursor position for xylophone and glasses
+  if (currentInstrument !== 'piano') {
+    // Create a fake event object for moveCustomCursor
+    const fakeEvent = {
+      clientX: touch.clientX,
+      clientY: touch.clientY
+    };
+    moveCustomCursor(fakeEvent);
+  }
+  
+  if (element) {
+    // Find the note index from the element
+    let noteIndex = null;
+    
+    if (currentInstrument === 'piano') {
+      // Check if it's a piano key
+      const pianoKeys = document.querySelectorAll('#pianoKeys .piano-white-button, #pianoKeys .piano-black-button');
+      const keyIndex = Array.from(pianoKeys).indexOf(element);
+      if (keyIndex !== -1) {
+        // Map to actual note indices
+        if (element.classList.contains('piano-white-button')) {
+          const whiteKeyIndex = Array.from(document.querySelectorAll('#pianoKeys .piano-white-button')).indexOf(element);
+          noteIndex = whiteKeyIndices[whiteKeyIndex];
+        } else if (element.classList.contains('piano-black-button')) {
+          const blackKeyIndex = Array.from(document.querySelectorAll('#pianoKeys .piano-black-button')).indexOf(element);
+          noteIndex = blackKeyIndices[blackKeyIndex];
+        }
+      }
+    } else if (currentInstrument === 'xylophone') {
+      // Check if it's a xylophone bar
+      const xyloContainers = document.querySelectorAll('#xylophoneKeys .xylophone-button');
+      const containerIndex = Array.from(xyloContainers).findIndex(container => 
+        container.contains(element) || container === element
+      );
+      if (containerIndex !== -1) {
+        noteIndex = naturalNoteIndices[containerIndex];
+      }
+    } else if (currentInstrument === 'glasses') {
+      // Check if it's a glass
+      const glassContainers = document.querySelectorAll('#glassesKeys .glass-button');
+      const containerIndex = Array.from(glassContainers).findIndex(container => 
+        container.contains(element) || container === element
+      );
+      if (containerIndex !== -1) {
+        noteIndex = naturalNoteIndices[containerIndex];
+      }
+    }
+    
+    if (noteIndex !== null && lastPlayedNote !== noteIndex) {
+      lastPlayedNote = noteIndex;
+      handleNotePlay(noteIndex);
+    }
+  }
+}
+
+// Handle touch end - stop dragging
+function handleTouchEnd() {
+  isDragging = false;
+  lastPlayedNote = null;
+  
+  // Disable custom cursor for xylophone and glasses
+  if (currentInstrument !== 'piano') {
+    disableCustomCursor();
+  }
 }
 
 // --- Custom cursor logic for large images ---
@@ -157,8 +265,10 @@ function disableCustomCursor() {
 
 function moveCustomCursor(e) {
   if (customCursorImg && customCursorImg.style.display === 'block') {
-    customCursorImg.style.left = (e.clientX - 20) + 'px';
-    customCursorImg.style.top = (e.clientY - 20) + 'px';
+    var left = e.clientX || e.touches[0].clientX - 20;
+    var top = e.clientY || e.touches[0].clientY - 20;
+    customCursorImg.style.left = left + 'px';
+    customCursorImg.style.top = top + 'px';
   }
 }
 
@@ -175,24 +285,47 @@ function createPiano() {
   const pianoKeys = document.getElementById('pianoKeys');
   pianoKeys.innerHTML = '';
   
-  // Create white keys
+  // Create white keys with consistent spacing
   whiteKeyIndices.forEach((noteIndex, index) => {
-      const key = document.createElement('button');
-      key.className = 'w-14 h-40 bg-white border border-gray-300 rounded-b-lg shadow-md hover:bg-gray-100 active:bg-gray-200 transition-colors duration-100 flex items-end justify-center pb-2 cursor-pointer';
+      const key = document.createElement('div');
+      key.className = 'piano-white-button h-40 bg-white border border-gray-300 rounded-b-lg shadow-md hover:bg-gray-100 active:bg-gray-200 transition-colors duration-100 flex items-end justify-center pb-2 cursor-pointer';
+      key.style.margin = '0 1px';
       key.innerHTML = `<span class="text-xs text-gray-600 font-medium">${whiteKeyNames[index]}</span>`;
-      key.addEventListener('mousedown', () => handleNotePlay(noteIndex));
+      key.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        handleMouseDown(noteIndex);
+      });
+      key.addEventListener('mouseover', () => handleMouseOverDrag(noteIndex));
+      key.addEventListener('mousemove', () => handleMouseOverDrag(noteIndex));
+      key.addEventListener('mouseup', handleMouseUp);
+      
+      // Touch events for mobile
+      key.addEventListener('touchstart', (e) => handleTouchStart(noteIndex, e));
+      key.addEventListener('touchend', handleTouchEnd);
+      
       pianoKeys.appendChild(key);
   });
   
   // Create black keys
   blackKeyIndices.forEach((noteIndex, index) => {
-      const positions = [0.75, 1.75, 3.75, 4.75, 5.75];
-      const key = document.createElement('button');
-      key.className = 'absolute w-9 h-24 bg-gray-900 rounded-b-lg shadow-lg hover:bg-gray-800 active:bg-gray-700 transition-colors duration-100 flex items-end justify-center pb-1 cursor-pointer';
-      key.style.left = `${positions[index] * 56}px`;
+      const positions = [1, 2, 4, 5, 6]; // Adjusted for better spacing
+      const key = document.createElement('div');
+      key.className = 'piano-black-button absolute h-24 bg-gray-900 rounded-b-lg shadow-lg hover:bg-gray-800 active:bg-gray-700 transition-colors duration-100 flex items-end justify-center pb-1 cursor-pointer';
+      key.style.left = `calc(${positions[index]} * 12.5% - 4.25%)`; // Adjusted positioning
       key.style.zIndex = '10';
       key.innerHTML = `<span class="text-xs text-white font-medium">${blackKeyNames[index]}</span>`;
-      key.addEventListener('mousedown', () => handleNotePlay(noteIndex));
+      key.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        handleMouseDown(noteIndex);
+      });
+      key.addEventListener('mouseover', () => handleMouseOverDrag(noteIndex));
+      key.addEventListener('mousemove', () => handleMouseOverDrag(noteIndex));
+      key.addEventListener('mouseup', handleMouseUp);
+      
+      // Touch events for mobile
+      key.addEventListener('touchstart', (e) => handleTouchStart(noteIndex, e));
+      key.addEventListener('touchend', handleTouchEnd);
+      
       pianoKeys.appendChild(key);
   });
 }
@@ -210,18 +343,37 @@ function createXylophone() {
       const index = naturalNoteIndices[i];
       const barHeight = 80 + (i * 10);
       const container = document.createElement('div');
-      container.className = 'flex flex-col items-center';
-      const bar = document.createElement('button');
-      bar.className = 'rounded-lg shadow-lg transition-all duration-100 hover:brightness-110 active:scale-95 bg-gradient-to-b from-gray-300 to-gray-500 w-9 flex items-center justify-center';
+      container.className = 'xylophone-button flex flex-col items-center';
+      // container.style.margin = '0 6px'; // Consistent spacing
+      const bar = document.createElement('div');
+      bar.className = 'rounded-lg shadow-lg transition-all duration-100 hover:brightness-110 active:scale-95 bg-gradient-to-b from-gray-300 to-gray-500 flex items-center justify-center w-full';
       bar.style.height = `${barHeight}px`;
       bar.style.boxShadow = 'inset 0 2px 4px rgba(255,255,255,0.3), 0 4px 8px rgba(0,0,0,0.2)';
-      bar.addEventListener('mousedown', () => {
-        handleNotePlay(index);
-        shakeCustomCursor();
+      bar.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        handleMouseDown(index);
       });
-      bar.addEventListener('mouseenter', () => enableCustomCursor('assets/image/instrument/mallet.png'));
+      bar.addEventListener('mouseenter', () => {
+        enableCustomCursor('assets/image/instrument/mallet.png');
+      });
+      bar.addEventListener('mouseover', () => handleMouseOverDrag(index));
+      bar.addEventListener('mousemove', (e) => {
+        moveCustomCursor(e);
+        handleMouseOverDrag(index);
+      });
       bar.addEventListener('mouseleave', disableCustomCursor);
-      bar.addEventListener('mousemove', moveCustomCursor);
+      bar.addEventListener('mouseup', handleMouseUp);
+      
+      // Touch events for mobile
+      bar.addEventListener('touchstart', (e) => {
+        enableCustomCursor('assets/image/instrument/mallet.png');
+        moveCustomCursor(e);
+        handleTouchStart(index, e);
+      });
+      bar.addEventListener('touchend', () => {
+        handleTouchEnd();
+        disableCustomCursor();
+      });
       const label = document.createElement('span');
       label.className = 'text-xs text-gray-700 font-medium pointer-events-none';
       label.textContent = note;
@@ -240,18 +392,37 @@ function createGlasses() {
       const glassHeight = 150;
       const waterLevel = 150 - (30 + (i * 9));
       const container = document.createElement('div');
-      container.className = 'flex flex-col items-center';
-      const glass = document.createElement('button');
-      glass.className = 'relative transition-all duration-100 hover:scale-105 active:scale-95 flex items-center justify-center';
+      container.className = 'flex flex-col items-center glass-button';
+      // container.style.margin = '0 6px'; // Consistent spacing
+      const glass = document.createElement('div');
+      glass.className = 'relative transition-all duration-100 hover:scale-105 active:scale-95 flex items-center justify-center w-full';
       glass.style.height = `${glassHeight}px`;
-      glass.style.width = '36px';
-      glass.addEventListener('mousedown', () => {
-        handleNotePlay(index);
-        shakeCustomCursor();
+      // glass.style.width = '12.5%'; // Consistent width
+      glass.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        handleMouseDown(index);
       });
-      glass.addEventListener('mouseenter', () => enableCustomCursor('assets/image/instrument/metalstick.png'));
+      glass.addEventListener('mouseenter', () => {
+        enableCustomCursor('assets/image/instrument/metalstick.png');
+      });
+      glass.addEventListener('mouseover', () => handleMouseOverDrag(index));
+      glass.addEventListener('mousemove', (e) => {
+        moveCustomCursor(e);
+        handleMouseOverDrag(index);
+      });
       glass.addEventListener('mouseleave', disableCustomCursor);
-      glass.addEventListener('mousemove', moveCustomCursor);
+      glass.addEventListener('mouseup', handleMouseUp);
+      
+      // Touch events for mobile
+      glass.addEventListener('touchstart', (e) => {
+        enableCustomCursor('assets/image/instrument/metalstick.png');
+        moveCustomCursor(e);
+        handleTouchStart(index, e);
+      });
+      glass.addEventListener('touchend', () => {
+        handleTouchEnd();
+        disableCustomCursor();
+      });
       const glassBody = document.createElement('div');
       glassBody.className = 'absolute bottom-0 w-full border-2 border-gray-400 rounded-b-lg bg-gradient-to-t from-blue-50 to-transparent';
       glassBody.style.height = `${glassHeight}px`;
@@ -296,9 +467,6 @@ function switchInstrument(instrument) {
   document.getElementById(instrument).classList.remove('hidden');
   document.getElementById(instrument).classList.add('active');
   
-  // // Update instructions
-  // const instructions = document.getElementById('instructions');
-  // instructions.textContent = `Click on the ${instrument} to play notes and see the pitch visualization above!`;
 }
 
 // Initialize the app
@@ -318,6 +486,16 @@ function init() {
   
   // Set default instrument
   switchInstrument('piano');
+  
+  // Add global mouse up event listener to stop dragging
+  document.addEventListener('mouseup', handleMouseUp);
+  document.addEventListener('mouseleave', handleMouseUp);
+  
+  // Add global touch event listeners for mobile
+  document.addEventListener('touchmove', handleTouchMove, { passive: false });
+  document.addEventListener('touchend', handleTouchEnd);
+  document.addEventListener('touchcancel', handleTouchEnd);
+  
 }
 
 // Start the app when DOM is loaded
