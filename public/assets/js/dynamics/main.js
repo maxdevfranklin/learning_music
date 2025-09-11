@@ -220,6 +220,16 @@
     const animalContainer = document.createElement("div");
     animalContainer.className = "drop-container";
 
+    // Touch drag state for mobile
+    let touchDragData = {
+      element: null,
+      startX: 0,
+      startY: 0,
+      offsetX: 0,
+      offsetY: 0,
+      isDragging: false
+    };
+
     // Create animal elements
     const createAnimal = (id, dataIndex, imgSrc) => {
       const animal = document.createElement("div");
@@ -232,7 +242,7 @@
       img.src = imgSrc;
       animal.appendChild(img);
 
-      //Add drag
+      //Add drag (desktop)
       animal.addEventListener("dragstart", (event) => {
         event.dataTransfer.setData("text/plain", id);
         animal.classList.add("dragging");
@@ -240,6 +250,35 @@
 
       animal.addEventListener("dragend", () => {
         animal.classList.remove("dragging");
+      });
+
+      // Add touch events for mobile
+      animal.addEventListener("touchstart", (event) => {
+        event.preventDefault();
+        
+        const touch = event.touches[0];
+        const rect = animal.getBoundingClientRect();
+        
+        touchDragData.element = animal;
+        touchDragData.startX = touch.clientX;
+        touchDragData.startY = touch.clientY;
+        touchDragData.offsetX = touch.clientX - rect.left;
+        touchDragData.offsetY = touch.clientY - rect.top;
+        touchDragData.isDragging = true;
+        
+        animal.classList.add("dragging");
+        
+        // Create clone for visual feedback
+        const clone = animal.cloneNode(true);
+        clone.id = "drag-clone";
+        clone.style.position = "fixed";
+        clone.style.zIndex = "1000";
+        clone.style.pointerEvents = "none";
+        clone.style.left = (touch.clientX - touchDragData.offsetX) + "px";
+        clone.style.top = (touch.clientY - touchDragData.offsetY) + "px";
+        clone.style.transform = "scale(0.8)";
+        clone.style.opacity = "0.8";
+        document.body.appendChild(clone);
       });
 
       return animal;
@@ -259,7 +298,94 @@
 
     multiSequencer.domElement.appendChild(animalContainer);
 
-    
+    // Add global touch events for mobile drag and drop
+    document.addEventListener("touchmove", (event) => {
+      if (!touchDragData.isDragging) return;
+      
+      event.preventDefault();
+      const touch = event.touches[0];
+      
+      // Update clone position
+      const clone = document.getElementById("drag-clone");
+      if (clone) {
+        clone.style.left = (touch.clientX - touchDragData.offsetX) + "px";
+        clone.style.top = (touch.clientY - touchDragData.offsetY) + "px";
+      }
+      
+      // Check for drop zone hover
+      const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+      const dropZone = elementBelow?.closest('.drop-zone');
+      
+      // Remove hover from all drop zones
+      document.querySelectorAll('.drop-zone').forEach(zone => {
+        zone.classList.remove('hovered');
+      });
+      
+      // Add hover to current drop zone
+      if (dropZone) {
+        dropZone.classList.add('hovered');
+      }
+    }, { passive: false });
+
+    document.addEventListener("touchend", (event) => {
+      if (!touchDragData.isDragging) return;
+      
+      event.preventDefault();
+      
+      const touch = event.changedTouches[0];
+      const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+      const dropZone = elementBelow?.closest('.drop-zone');
+      
+      // Remove clone
+      const clone = document.getElementById("drag-clone");
+      if (clone) {
+        document.body.removeChild(clone);
+      }
+      
+      // Handle drop
+      if (dropZone && touchDragData.element) {
+        const animalId = touchDragData.element.id;
+        const originalAnimal = touchDragData.element;
+        
+        dropZone.innerHTML = "";
+        
+        // Clone only image
+        const animalClone = originalAnimal.cloneNode(true);
+        animalClone.removeAttribute("id");
+        animalClone.draggable = false;
+        animalClone.style.cursor = "default";
+        animalClone.classList.remove("dragging");
+        const dIndex = animalClone.getAttribute("data-index");
+        dropZone.setAttribute("data-index", dIndex);
+        dropZone.appendChild(animalClone);
+        
+        // Update the sequence
+        const index = parseInt(dropZone.getAttribute("data-index"));
+        sequence[index] = {
+          id: animalId,
+        };
+      }
+      
+      // Clean up
+      if (touchDragData.element) {
+        touchDragData.element.classList.remove("dragging");
+      }
+      
+      // Remove hover from all drop zones
+      document.querySelectorAll('.drop-zone').forEach(zone => {
+        zone.classList.remove('hovered');
+      });
+      
+      // Reset touch drag data
+      touchDragData = {
+        element: null,
+        startX: 0,
+        startY: 0,
+        offsetX: 0,
+        offsetY: 0,
+        isDragging: false
+      };
+    });
 
     // Identify selected box
     // let zones = document.querySelectorAll("drop-zone");

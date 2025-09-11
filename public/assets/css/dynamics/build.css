@@ -250,8 +250,9 @@ input {
 .drop-container {
   display: flex;
   justify-content: center;
-  gap: 30px;
+  gap: 0.3rem;
   margin-top: 40px;
+  padding: 0 2rem;
 }
 .divider {
   display: flex;

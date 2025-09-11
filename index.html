@@ -112,7 +112,10 @@
           <div class="content">
             <img src="assets/image/landing/mentorship-2.jpg" alt="" />
             <h1>Metronome</h1>
-            <p>Coming Soon</p>
+            <p>
+              Practice with our interactive metronome! Adjust tempo, follow visual beats, 
+              and improve your timing skills.
+            </p>
             <button class="btn btn-grad" onclick="location.href='/metronome'">
               <span>Let's go</span>
               <ion-icon name="arrow-forward-outline"></ion-icon>
@@ -124,7 +127,10 @@
           <div class="content">
             <img src="assets/image/landing/mentorship-3.jpg" alt="" />
             <h1>Song Maker</h1>
-            <p>Coming Soon</p>
+            <p>
+              Create beautiful music with our intuitive song maker! Choose instruments, 
+              layer melodies, and compose your masterpieces.
+            </p>
             <button class="btn btn-grad" onclick="location.href='/composite'">
               <span>Let's go</span>
               <ion-icon name="arrow-forward-outline"></ion-icon>
@@ -136,7 +142,10 @@
           <div class="content">
             <img src="assets/image/landing/mentorship-4.jpg" alt="" />
             <h1>Rhythm</h1>
-            <p>Coming Soon</p>
+            <p>
+              Master rhythm patterns and timing! Learn note values, practice clapping, 
+              and develop your sense of beat.
+            </p>
             <button class="btn btn-grad" onclick="location.href='/rhythm'">
               <span>Let's go</span>
               <ion-icon name="arrow-forward-outline"></ion-icon>
@@ -148,7 +157,10 @@
           <div class="content">
             <img src="assets/image/landing/mentorship-5.jpg" alt="" />
             <h1>Music Instrument</h1>
-            <p>Coming Soon</p>
+            <p>
+              Play virtual instruments with realistic sound! Switch between piano, xylophone, 
+              and glasses with pitch visualization.
+            </p>
             <button class="btn btn-grad" onclick="location.href='/instrument'">
               <span>Let's go</span>
               <ion-icon name="arrow-forward-outline"></ion-icon>
@@ -165,10 +177,6 @@
               self-esteem. Their encouragement can help you believe in your
               potential and take on challenges with vigor.
             </p>
-            <button class="btn btn-grad">
-              <span>Let's go</span>
-              <ion-icon name="arrow-forward-outline"></ion-icon>
-            </button>
           </div>
         </div>
       </div>
@@ -183,6 +191,10 @@
       </ul>
     </section>
 
+    <footer style="text-align: center; padding: 1rem; background-color: #05121f; color: #d4d4d4; font-size: 0.9rem;">
+      <p>&copy; <span id="current-year"></span> learningmusic.com</p>
+    </footer>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tiny-slider/2.9.2/min/tiny-slider.js"></script>
     <script
       type="module"
@@ -195,5 +207,10 @@
     <script src="https://unpkg.com/scrollreveal"></script>
     <script src="assets/js/app.js"></script>
     <script src="assets/js/vanilla-tilt.js"></script>
+    <script>
+      screen.orientation.lock('portrait');
+      // Set current year in footer
+      document.getElementById('current-year').textContent = new Date().getFullYear();
+    </script>
   </body>
 </html>
