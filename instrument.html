@@ -15,9 +15,8 @@
       cursor: url('assets/image/instrument/metalstick.png') 10 5, auto !important;
     }
     .instrument-container {
-      min-height: 300px;
+      /* min-height: 300px; */
       width: 100%;
-      padding-left: 9%;
     }
     .navbar {
       width: 100%;
@@ -90,6 +89,28 @@
     .xylophone-button {
       width: 12.5%;
     }
+    .y-axis-label {
+      height: 4vh;
+      text-align: right;
+      padding-right: 10px;
+    }
+    .y-axis-container {
+      padding-right: 44px !important;
+    }
+    .instrument-block {
+      padding-right: 44px !important;
+      padding-left: 44px !important;
+    }
+    @media (max-width: 768px) {
+      .instrument-block {
+        padding-right: 20px !important;
+        padding-left: 24px !important;
+        margin-left: 20px !important;
+      }
+      .y-axis-container {
+        padding-right: 20px !important;
+      }
+    }
   </style>
 </head>
 <body style="display: flex; flex-direction: column; height: 100vh;">
@@ -99,14 +120,25 @@
     <a class="nav-btn help" style="visibility: hidden;">?</a>
   </nav>
   <div class="flex-1 container" style="flex-direction: column; display: flex; padding: 2rem; margin: auto;">
-    <div style="justify-content: center; display: flex; flex-direction: column;">
+    <div style="justify-content: center; display: flex; flex-direction: column; height: 100%;">
       <!-- Pitch Graph -->
       <h3 class="text-lg font-semibold text-gray-800 mb-6 text-center">
         Pitch Visualization
       </h3>
-      <div class="bg-white rounded-lg shadow-lg p-6 mb-8 max-w-4xl mx-auto w-full">
+      <div class="bg-white p-6 mb-8 max-w-4xl mx-auto w-full flex y-axis-container flex-1">
         
-        <div class="relative bg-gray-50 border border-gray-200 h-80" style="height: 100%;">
+        <!-- Y-axis labels -->
+        <div class="flex flex-col-reverse justify-between" style="width: 10px;">
+          <div class="text-sm font-medium text-gray-700 y-axis-label">C</div>
+          <div class="text-sm font-medium text-gray-700 y-axis-label">D</div>
+          <div class="text-sm font-medium text-gray-700 y-axis-label">E</div>
+          <div class="text-sm font-medium text-gray-700 y-axis-label">F</div>
+          <div class="text-sm font-medium text-gray-700 y-axis-label">G</div>
+          <div class="text-sm font-medium text-gray-700 y-axis-label">A</div>
+          <div class="text-sm font-medium text-gray-700 y-axis-label">B</div>
+          <div class="text-sm font-medium text-gray-700 y-axis-label">C</div>
+        </div>
+        <div class="relative bg-gray-50 border border-gray-200 h-80 flex-1" style="height: 100%; margin-left: 10px; margin-top: 10px;">
           <!-- Grid lines -->
           <div class="absolute inset-0">
             <!-- Horizontal grid lines -->
@@ -118,40 +150,28 @@
             <div class="absolute w-full border-t border-gray-300" style="top: 75%"></div>
             <div class="absolute w-full border-t border-gray-300" style="top: 87.5%"></div>
             <!-- Vertical grid lines -->
-            <div class="absolute h-full border-l border-gray-300" style="left: 10%"></div>
-            <div class="absolute h-full border-l border-gray-300" style="left: 21.25%"></div>
-            <div class="absolute h-full border-l border-gray-300" style="left: 32.5%"></div>
-            <div class="absolute h-full border-l border-gray-300" style="left: 43.75%"></div>
-            <div class="absolute h-full border-l border-gray-300" style="left: 55%"></div>
-            <div class="absolute h-full border-l border-gray-300" style="left: 66.25%"></div>
-            <div class="absolute h-full border-l border-gray-300" style="left: 77.5%"></div>
-            <div class="absolute h-full border-l border-gray-300" style="left: 88.75%"></div>
+            <div class="absolute h-full border-l border-gray-300" style="left: 12.5%"></div>
+            <div class="absolute h-full border-l border-gray-300" style="left: 25%"></div>
+            <div class="absolute h-full border-l border-gray-300" style="left: 37.5%"></div>
+            <div class="absolute h-full border-l border-gray-300" style="left: 50%"></div>
+            <div class="absolute h-full border-l border-gray-300" style="left: 62.5%"></div>
+            <div class="absolute h-full border-l border-gray-300" style="left: 75%"></div>
+            <div class="absolute h-full border-l border-gray-300" style="left: 87.5%"></div>
           </div>
           
           <!-- Chart area -->
           <div class="relative flex h-full">
-            <!-- Y-axis labels -->
-            <div class="flex flex-col-reverse justify-between" style="width: 10%">
-              <div class="text-sm font-medium text-gray-700" style="text-align: right; padding-right: 5px;">C</div>
-              <div class="text-sm font-medium text-gray-700" style="text-align: right; padding-right: 5px;">D</div>
-              <div class="text-sm font-medium text-gray-700" style="text-align: right; padding-right: 5px;">E</div>
-              <div class="text-sm font-medium text-gray-700" style="text-align: right; padding-right: 5px;">F</div>
-              <div class="text-sm font-medium text-gray-700" style="text-align: right; padding-right: 5px;">G</div>
-              <div class="text-sm font-medium text-gray-700" style="text-align: right; padding-right: 5px;">A</div>
-              <div class="text-sm font-medium text-gray-700" style="text-align: right; padding-right: 5px;">B</div>
-              <div class="text-sm font-medium text-gray-700" style="text-align: right; padding-right: 5px;">C</div>
-            </div>
             
             <!-- Bars container -->
             <div class="flex-1 flex items-end justify-center" id="pitchBars">
-              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="0" style="height: 12.5%; background-color: #E53E3E; min-height: 20px;"></div>
-              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="2" style="height: 25%; background-color: #FF8C00; min-height: 20px;"></div>
-              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="4" style="height: 37.5%; background-color: #FFD700; min-height: 20px;"></div>
-              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="5" style="height: 50%; background-color: #32CD32; min-height: 20px;"></div>
-              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="7" style="height: 62.5%; background-color: #20B2AA; min-height: 20px;"></div>
-              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="9" style="height: 75%; background-color: #4169E1; min-height: 20px;"></div>
-              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="11" style="height: 87.5%; background-color: #9932CC; min-height: 20px;"></div>
-              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="12" style="height: 100%; background-color: #E53E3E; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="0" data-active-color="#E53E3E" style="height: 12.5%; background-color: transparent; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="2" data-active-color="#FF8C00" style="height: 25%; background-color: transparent; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="4" data-active-color="#FFD700" style="height: 37.5%; background-color: transparent; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="5" data-active-color="#32CD32" style="height: 50%; background-color: transparent; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="7" data-active-color="#20B2AA" style="height: 62.5%; background-color: transparent; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="9" data-active-color="#4169E1" style="height: 75%; background-color: transparent; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="11" data-active-color="#9932CC" style="height: 87.5%; background-color: transparent; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="12" data-active-color="#E53E3E" style="height: 100%; background-color: transparent; min-height: 20px;"></div>
             </div>
           </div>
         </div>
@@ -177,39 +197,38 @@
           <span class="text-sm font-medium">Glasses</span>
         </button>
       </div>
-    </div>
-
-    <!-- Instrument Container -->
-    <div class="flex justify-center flex-1" style="align-items: center;">
-      <div id="instrumentContainer" class="instrument-container">
-        <!-- Piano (default) -->
-        <div id="piano" class="instrument active">
-          <div class="relative bg-gray-800 p-6 rounded-xl shadow-2xl max-w-3xl mx-auto">
-            <div class="relative flex justify-center" id="pianoKeys">
-              <!-- Piano keys will be generated by JavaScript -->
+      <!-- Instrument Container -->
+      <div class="flex justify-center" style="align-items: center;">
+        <div id="instrumentContainer" class="instrument-container">
+          <!-- Piano (default) -->
+          <div id="piano" class="instrument active">
+            <div class="instrument-block relative bg-gray-800 p-6 rounded-xl shadow-2xl max-w-4xl mx-auto">
+              <div class="relative flex justify-center" id="pianoKeys">
+                <!-- Piano keys will be generated by JavaScript -->
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Xylophone -->
-        <div id="xylophone" class="instrument hidden">
-          <div class="bg-gradient-to-b from-amber-100 to-amber-200 p-8 rounded-xl shadow-2xl max-w-3xl mx-auto">
-            <div class="flex items-center justify-center gap-1" id="xylophoneKeys">
-              <!-- Xylophone bars will be generated by JavaScript -->
+          <!-- Xylophone -->
+          <div id="xylophone" class="instrument hidden">
+            <div class="instrument-block bg-gradient-to-b max-w-4xl mx-auto"> <!-- from-amber-100 to-amber-200 -->
+              <div class="flex items-center justify-center gap-1" id="xylophoneKeys">
+                <!-- Xylophone bars will be generated by JavaScript -->
+              </div>
+              <!-- <div class="mt-4 flex justify-center">
+                <div class="w-full h-6 bg-gradient-to-r from-amber-600 to-amber-800 rounded-full shadow-inner"></div>
+              </div> -->
             </div>
-            <!-- <div class="mt-4 flex justify-center">
-              <div class="w-full h-6 bg-gradient-to-r from-amber-600 to-amber-800 rounded-full shadow-inner"></div>
-            </div> -->
           </div>
-        </div>
 
-        <!-- Glasses -->
-        <div id="glasses" class="instrument hidden">
-          <div class="bg-white p-8 rounded-xl shadow-2xl max-w-3xl mx-auto">
-            <div class="flex items-center justify-center gap-3" id="glassesKeys">
-              <!-- Glasses will be generated by JavaScript -->
+          <!-- Glasses -->
+          <div id="glasses" class="instrument hidden">
+            <div class="instrument-block bg-white p-8 max-w-4xl mx-auto">
+              <div class="flex items-center justify-center gap-3" id="glassesKeys">
+                <!-- Glasses will be generated by JavaScript -->
+              </div>
+              <!-- <div class="mt-6 w-full h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full shadow-inner"></div> -->
             </div>
-            <!-- <div class="mt-6 w-full h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full shadow-inner"></div> -->
           </div>
         </div>
       </div>

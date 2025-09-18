@@ -78,23 +78,27 @@ function playNote(frequency, instrument) {
 function updatePitchVisualization(noteIndex) {
   const pitchBars = document.querySelectorAll('.pitch-bar');
   
-  // Reset all bars
+  // Reset all bars to default dark grey color
   pitchBars.forEach(bar => {
       bar.classList.remove('opacity-100', 'scale-105', 'shadow-lg');
       bar.classList.add('opacity-90');
+      bar.style.backgroundColor = 'transparent'; // Dark grey default color
   });
   
   // Highlight active bar (only for white keys)
   if (whiteKeyIndices.includes(noteIndex)) {
       const activeBar = document.querySelector(`[data-note="${noteIndex}"]`);
       if (activeBar) {
+          const activeColor = activeBar.getAttribute('data-active-color');
           activeBar.classList.remove('opacity-90');
           activeBar.classList.add('opacity-100', 'scale-105', 'shadow-lg');
+          activeBar.style.backgroundColor = activeColor; // Change to active color
           
           // Clear highlight after delay
           setTimeout(() => {
               activeBar.classList.remove('opacity-100', 'scale-105', 'shadow-lg');
               activeBar.classList.add('opacity-90');
+              activeBar.style.backgroundColor = 'transparent'; // Back to dark grey
           }, 500);
       }
   }
@@ -310,21 +314,21 @@ function createPiano() {
   blackKeyIndices.forEach((noteIndex, index) => {
       const positions = [1, 2, 4, 5, 6]; // Adjusted for better spacing
       const key = document.createElement('div');
-      key.className = 'piano-black-button absolute h-24 bg-gray-900 rounded-b-lg shadow-lg hover:bg-gray-800 active:bg-gray-700 transition-colors duration-100 flex items-end justify-center pb-1 cursor-pointer';
+      key.className = 'piano-black-button absolute h-24 bg-gray-900 rounded-b-lg shadow-lg flex items-end justify-center pb-1';
       key.style.left = `calc(${positions[index]} * 12.5% - 4.25%)`; // Adjusted positioning
       key.style.zIndex = '10';
-      key.innerHTML = `<span class="text-xs text-white font-medium">${blackKeyNames[index]}</span>`;
-      key.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        handleMouseDown(noteIndex);
-      });
-      key.addEventListener('mouseover', () => handleMouseOverDrag(noteIndex));
-      key.addEventListener('mousemove', () => handleMouseOverDrag(noteIndex));
-      key.addEventListener('mouseup', handleMouseUp);
+      key.innerHTML = `<span class="text-xs text-white font-medium"></span>`; //${blackKeyNames[index]}
+      // key.addEventListener('mousedown', (e) => {
+      //   e.preventDefault();
+      //   handleMouseDown(noteIndex);
+      // });
+      // key.addEventListener('mouseover', () => handleMouseOverDrag(noteIndex));
+      // key.addEventListener('mousemove', () => handleMouseOverDrag(noteIndex));
+      // key.addEventListener('mouseup', handleMouseUp);
       
-      // Touch events for mobile
-      key.addEventListener('touchstart', (e) => handleTouchStart(noteIndex, e));
-      key.addEventListener('touchend', handleTouchEnd);
+      // // Touch events for mobile
+      // key.addEventListener('touchstart', (e) => handleTouchStart(noteIndex, e));
+      // key.addEventListener('touchend', handleTouchEnd);
       
       pianoKeys.appendChild(key);
   });
@@ -341,13 +345,17 @@ function createXylophone() {
   
   naturalNoteNames.forEach((note, i) => {
       const index = naturalNoteIndices[i];
-      const barHeight = 80 + (i * 10);
+      const barHeight = 200 - (i * 10);
       const container = document.createElement('div');
       container.className = 'xylophone-button flex flex-col items-center';
       // container.style.margin = '0 6px'; // Consistent spacing
       const bar = document.createElement('div');
-      bar.className = 'rounded-lg shadow-lg transition-all duration-100 hover:brightness-110 active:scale-95 bg-gradient-to-b from-gray-300 to-gray-500 flex items-center justify-center w-full';
+      bar.className = 'rounded-lg shadow-lg transition-all duration-100 hover:brightness-110 active:scale-95 flex items-center justify-center w-full';
       bar.style.height = `${barHeight}px`;
+      bar.style.backgroundImage = 'url("assets/image/instrument/xylophone.png")';
+      bar.style.backgroundSize = '100% 100%';
+      bar.style.backgroundPosition = 'center';
+      bar.style.backgroundRepeat = 'no-repeat';
       bar.style.boxShadow = 'inset 0 2px 4px rgba(255,255,255,0.3), 0 4px 8px rgba(0,0,0,0.2)';
       bar.addEventListener('mousedown', (e) => {
         e.preventDefault();
@@ -423,17 +431,12 @@ function createGlasses() {
         handleTouchEnd();
         disableCustomCursor();
       });
-      const glassBody = document.createElement('div');
-      glassBody.className = 'absolute bottom-0 w-full border-2 border-gray-400 rounded-b-lg bg-gradient-to-t from-blue-50 to-transparent';
-      glassBody.style.height = `${glassHeight}px`;
-      const water = document.createElement('div');
-      water.className = 'absolute bottom-0 w-full bg-gradient-to-t from-blue-300 to-blue-200 rounded-b-lg opacity-80';
-      water.style.height = `${waterLevel}px`;
-      const shine = document.createElement('div');
-      shine.className = 'absolute left-1 top-2 w-1 h-12 bg-white opacity-60 rounded-full';
-      glassBody.appendChild(water);
-      glassBody.appendChild(shine);
-      glass.appendChild(glassBody);
+      // Use glass image as background (glass-1.png through glass-8.png)
+      const glassImageNumber = i + 1; // i starts from 0, so +1 for glass-1 to glass-8
+      glass.style.backgroundImage = `url("assets/image/instrument/glass-${glassImageNumber}.png")`;
+      glass.style.backgroundSize = '100% 100%';
+      glass.style.backgroundPosition = 'center';
+      glass.style.backgroundRepeat = 'no-repeat';
       // Centered label inside the glass button
       const label = document.createElement('span');
       label.className = 'text-xs text-gray-700 font-medium pointer-events-none z-10';
