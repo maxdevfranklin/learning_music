@@ -17,6 +17,7 @@
     .instrument-container {
       /* min-height: 300px; */
       width: 100%;
+      margin-bottom: 200px;
     }
     .navbar {
       width: 100%;
@@ -75,7 +76,8 @@
       cursor: none !important;
     }
     .pitch-bar {
-      width: 12.5%;
+      width: 100%;
+      flex: 1;
     }
     .piano-white-button {
       width: 12.5%;
@@ -100,6 +102,10 @@
       padding-right: 44px !important;
       padding-left: 44px !important;
     }
+    .half-key {
+      width: 4.25%;
+      border-bottom-right-radius: 0 !important;
+    }
     @media (max-width: 768px) {
       .instrument-block {
         padding-right: 20px !important;
@@ -109,36 +115,44 @@
       .y-axis-container {
         padding-right: 20px !important;
       }
+      .instrument-btn {
+        padding: 0;
+      }
+      .instrument-btn img {
+        width: 2rem;
+        height: 2rem;
+        margin: 0;
+      }
+      .instrument-btn span {
+        display: none;
+      }
     }
   </style>
 </head>
 <body style="display: flex; flex-direction: column; height: 100vh;">
   <nav class="navbar">
     <a class="nav-btn back" onclick="location.href='/'"></a>
-    <span class="nav-title">Music Instrument</span>
+    <span class="nav-title">Pitch</span>
     <a class="nav-btn help" style="visibility: hidden;">?</a>
   </nav>
-  <div class="flex-1 container" style="flex-direction: column; display: flex; padding: 2rem; margin: auto;">
+  <div class="flex-1 container" style="flex-direction: column; display: flex; margin: auto;">
     <div style="justify-content: center; display: flex; flex-direction: column; height: 100%;">
-      <!-- Pitch Graph -->
-      <h3 class="text-lg font-semibold text-gray-800 mb-6 text-center">
-        Pitch Visualization
-      </h3>
-      <div class="bg-white p-6 mb-8 max-w-4xl mx-auto w-full flex y-axis-container flex-1">
+      <div class="bg-white p-6 mb-8 max-w-4xl mx-auto flex y-axis-container flex-1" style="width: 350px;">
         
         <!-- Y-axis labels -->
-        <div class="flex flex-col-reverse justify-between" style="width: 10px;">
+        <div class="flex flex-col-reverse justify-between" style="width: 100px;">
           <div class="text-sm font-medium text-gray-700 y-axis-label"></div>
-          <div class="text-sm font-medium text-gray-700 y-axis-label">C</div>
-          <div class="text-sm font-medium text-gray-700 y-axis-label">D</div>
-          <div class="text-sm font-medium text-gray-700 y-axis-label">E</div>
-          <div class="text-sm font-medium text-gray-700 y-axis-label">F</div>
-          <div class="text-sm font-medium text-gray-700 y-axis-label">G</div>
-          <div class="text-sm font-medium text-gray-700 y-axis-label">A</div>
-          <div class="text-sm font-medium text-gray-700 y-axis-label">B</div>
-          <div class="text-sm font-medium text-gray-700 y-axis-label">C</div>
+          <div class="text-sm font-medium text-gray-700 y-axis-label">C = 262 Hz</div>
+          <div class="text-sm font-medium text-gray-700 y-axis-label">D = 294 Hz</div>
+          <div class="text-sm font-medium text-gray-700 y-axis-label">E = 329 Hz</div>
+          <div class="text-sm font-medium text-gray-700 y-axis-label">F = 349 Hz</div>
+          <div class="text-sm font-medium text-gray-700 y-axis-label">G = 392 Hz</div>
+          <div class="text-sm font-medium text-gray-700 y-axis-label">A = 440 Hz</div>
+          <div class="text-sm font-medium text-gray-700 y-axis-label">B = 494 Hz</div>
+          <div class="text-sm font-medium text-gray-700 y-axis-label">C = 523 Hz</div>
+          <div class="text-sm font-medium text-gray-700 y-axis-label"></div>
         </div>
-        <div class="relative bg-gray-50 border border-gray-200 h-80 flex-1" style="height: 100%; margin-left: 10px; margin-top: 10px;">
+        <div class="relative bg-gray-50 border border-gray-200 h-80 flex-1" style="height: 100%; margin-left: 10px;">
           <!-- Grid lines -->
           <div class="absolute inset-0">
             <!-- Horizontal grid lines -->
@@ -150,55 +164,42 @@
             <div class="absolute w-full border-t border-gray-300" style="top: 75%"></div>
             <div class="absolute w-full border-t border-gray-300" style="top: 87.5%"></div>
             <!-- Vertical grid lines -->
-            <div class="absolute h-full border-l border-gray-300" style="left: 12.5%"></div>
-            <div class="absolute h-full border-l border-gray-300" style="left: 25%"></div>
-            <div class="absolute h-full border-l border-gray-300" style="left: 37.5%"></div>
-            <div class="absolute h-full border-l border-gray-300" style="left: 50%"></div>
-            <div class="absolute h-full border-l border-gray-300" style="left: 62.5%"></div>
-            <div class="absolute h-full border-l border-gray-300" style="left: 75%"></div>
-            <div class="absolute h-full border-l border-gray-300" style="left: 87.5%"></div>
           </div>
           
           <!-- Chart area -->
           <div class="relative flex h-full">
             
             <!-- Bars container -->
-            <div class="flex-1 flex items-end justify-center" id="pitchBars">
-              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="0" data-active-color="#E53E3E" style="height: 12.5%; background-color: transparent; min-height: 20px;"></div>
-              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="2" data-active-color="#FF8C00" style="height: 25%; background-color: transparent; min-height: 20px;"></div>
-              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="4" data-active-color="#FFD700" style="height: 37.5%; background-color: transparent; min-height: 20px;"></div>
-              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="5" data-active-color="#32CD32" style="height: 50%; background-color: transparent; min-height: 20px;"></div>
-              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="7" data-active-color="#20B2AA" style="height: 62.5%; background-color: transparent; min-height: 20px;"></div>
-              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="9" data-active-color="#4169E1" style="height: 75%; background-color: transparent; min-height: 20px;"></div>
-              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="11" data-active-color="#9932CC" style="height: 87.5%; background-color: transparent; min-height: 20px;"></div>
-              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="12" data-active-color="#E53E3E" style="height: 100%; background-color: transparent; min-height: 20px;"></div>
+            <div class="flex-1 flex items-end justify-center" id="pitchBars" style="flex-direction: column-reverse;">
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="0" data-active-color="#E53E3E" style="background-color: transparent; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="2" data-active-color="#FF8C00" style="background-color: transparent; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="4" data-active-color="#FFD700" style="background-color: transparent; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="5" data-active-color="#32CD32" style="background-color: transparent; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="7" data-active-color="#20B2AA" style="background-color: transparent; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="9" data-active-color="#4169E1" style="background-color: transparent; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="11" data-active-color="#9932CC" style="background-color: transparent; min-height: 20px;"></div>
+              <div class="pitch-bar transition-all duration-300 opacity-90" data-note="12" data-active-color="#E53E3E" style="background-color: transparent; min-height: 20px;"></div>
             </div>
           </div>
         </div>
       </div>
-      <!-- Instrument Selector (moved below pitch graph) -->
-      <div class="flex justify-center gap-4 mb-8" id="instrumentSelector">
-        <button class="instrument-btn flex flex-col items-center p-4 rounded-xl transition-all duration-300 bg-blue-500 text-white shadow-lg scale-105" data-instrument="piano">
-          <svg class="w-8 h-8 mb-2" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM8 20H4V4h4v16zm6 0h-4V4h4v16zm6 0h-4V4h4v16z"/>
-          </svg>
-          <span class="text-sm font-medium">Piano</span>
-        </button>
-        <button class="instrument-btn flex flex-col items-center p-4 rounded-xl transition-all duration-300 bg-white text-gray-700 hover:bg-gray-50 shadow-md hover:shadow-lg" data-instrument="xylophone">
-          <svg class="w-8 h-8 mb-2" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-          </svg>
-          <span class="text-sm font-medium">Xylophone</span>
-        </button>
-        <button class="instrument-btn flex flex-col items-center p-4 rounded-xl transition-all duration-300 bg-white text-gray-700 hover:bg-gray-50 shadow-md hover:shadow-lg" data-instrument="glasses">
-          <svg class="w-8 h-8 mb-2" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M9.5 2C8.67 2 8 2.67 8 3.5S8.67 5 9.5 5 11 4.33 11 3.5 10.33 2 9.5 2zm5 0C13.67 2 13 2.67 13 3.5S13.67 5 14.5 5 16 4.33 16 3.5 15.33 2 14.5 2zM12 6c-3.31 0-6 2.69-6 6v8h12v-8c0-3.31-2.69-6-6-6z"/>
-          </svg>
-          <span class="text-sm font-medium">Glasses</span>
-        </button>
-      </div>
       <!-- Instrument Container -->
-      <div class="flex justify-center" style="align-items: center;">
+      <div class="flex">
+        <!-- Instrument Selector (moved below pitch graph) -->
+        <div class="flex gap-4 mb-8" id="instrumentSelector" style="flex-direction: column;">
+          <button class="instrument-btn flex flex-col items-center p-4 rounded-xl transition-all duration-300 bg-blue-500 text-white shadow-lg scale-105" data-instrument="piano">
+            <img src="assets/image/instrument/piano-icon.png" alt="Keyboard" class="w-16 h-16 mb-2">
+            <span class="text-sm font-medium">Keyboard</span>
+          </button>
+          <button class="instrument-btn flex flex-col items-center p-4 rounded-xl transition-all duration-300 bg-white text-gray-700 hover:bg-gray-50 shadow-md hover:shadow-lg" data-instrument="xylophone">
+            <img src="assets/image/instrument/xylophone-icon.png" alt="Keyboard" class="w-16 h-16 mb-2">
+            <span class="text-sm font-medium">Xylophone</span>
+          </button>
+          <button class="instrument-btn flex flex-col items-center p-4 rounded-xl transition-all duration-300 bg-white text-gray-700 hover:bg-gray-50 shadow-md hover:shadow-lg" data-instrument="glasses">
+            <img src="assets/image/instrument/glass-icon.png" alt="Keyboard" class="w-16 h-16 mb-2">
+            <span class="text-sm font-medium">Glasses</span>
+          </button>
+        </div>
         <div id="instrumentContainer" class="instrument-container">
           <!-- Piano (default) -->
           <div id="piano" class="instrument active">
